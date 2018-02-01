@@ -145,7 +145,11 @@ public class SelectorPoll extends Poll
         while (!stop) {
             awake.set(false);
             wakenUp.set(false);
+
+            //favor events over selected keys, also necessary to check here
+            //after awake and wakenUp flags are set to true
             processEvents();
+
             selector.select(timeout);
             awake.set(true);
             timestamp = Util.time();

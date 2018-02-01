@@ -42,7 +42,6 @@ public class Timer
      * iteration
      *
      * @param timestamp Current timestamp
-     *
      * @return Next timeout
      */
     public long execute(long timestamp)

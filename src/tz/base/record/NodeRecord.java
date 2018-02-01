@@ -37,6 +37,7 @@ public class NodeRecord
     //Role of the node
     public Role role;
 
+    //Tcp & Tls transports of the node
     public List<TransportRecord> transports;
 
 
@@ -74,61 +75,87 @@ public class NodeRecord
         transports.clear();
     }
 
+
+    /**
+     * Get other record's transports into this
+     *
+     * @param head  Should we place transports at the head of the list
+     * @param other NodeRecord to collect its transports
+     */
     public void inheritTransports(boolean head, NodeRecord other)
     {
         transports.addAll(head ? 0 : transports.size(), other.transports);
     }
 
+    /**
+     * Set connected
+     * @param connected True if connected
+     */
     public void setConnected(boolean connected)
     {
         this.connected = connected;
     }
 
+    /**
+     * Set role to PEER
+     */
     public void setPeer()
     {
         this.role = Role.PEER;
     }
 
-    public void setLeader()
-    {
-        this.role = Role.LEADER;
-    }
-
+    /**
+     * Is leader
+     * @return True if this node is PEER
+     */
     public boolean isPeer()
     {
         return role == Role.PEER;
     }
 
+    /**
+     * Set role to LEADER
+     */
+    public void setLeader()
+    {
+        this.role = Role.LEADER;
+    }
+
+    /**
+     * Is leader
+     * @return True if this node is LEADER
+     */
     public boolean isLeader()
     {
         return role == Role.LEADER;
     }
 
+    /**
+     * Set role to CLIENT
+     */
     public void setClient()
     {
         this.role = Role.CLIENT;
     }
 
+    /**
+     * Is leader
+     * @return True if this node is CLIENT
+     */
     public boolean isClient()
     {
         return this.role == Role.CLIENT;
     }
 
+    /**
+     * Get name of the record
+     * @return Name of the record
+     */
     public String getName()
     {
         return name;
     }
-
-    public String getGroup()
-    {
-        return group;
-    }
-
-    public boolean isSameGroup(NodeRecord other)
-    {
-        return this.group.equals(other.group);
-    }
-
+    
     /**
      * Clear transports
      */

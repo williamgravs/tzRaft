@@ -7,9 +7,7 @@ import tz.core.worker.Worker;
 import java.io.IOException;
 import java.nio.channels.Selector;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
-import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -24,9 +22,13 @@ public class Poll
     //Event holder, mostly events from other threads
     final ArrayBlockingQueue<Event> queue;
 
+    //Consumer thread local event queue
     private Deque<Event> events;
+
+    //Timer handler
     Timer timer;
 
+    //Thread will stop if set true
     boolean stop;
 
     /**
@@ -142,7 +144,6 @@ public class Poll
      * Get selector
      *
      * @return Selector
-     *
      * @throws UnsupportedOperationException When not overridden
      */
     public Selector getSelector()
@@ -155,7 +156,6 @@ public class Poll
      *
      * @param sock Socket
      * @param ops  Interest Ops
-     *
      * @throws UnsupportedOperationException
      *         When not overridden
      */

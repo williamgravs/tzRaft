@@ -12,7 +12,10 @@ import java.util.List;
  */
 public class ClusterRecord
 {
+    //Cluster name
     public String name;
+
+    //Peers including own record of the peer
     public List<NodeRecord> peers;
 
     /**
@@ -64,7 +67,6 @@ public class ClusterRecord
      * Remove record
      *
      * @param name Record name
-     *
      * @return     Removed record
      */
     public NodeRecord removeRecord(String name)
