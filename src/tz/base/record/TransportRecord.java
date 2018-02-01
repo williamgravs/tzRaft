@@ -16,9 +16,9 @@ public final class TransportRecord
     /**
      * Create new TransportRecord
      *
-     * @param protocol protocol string, tcp or tls
-     * @param hostName hostname
-     * @param port     port
+     * @param protocol Protocol string, tcp or tls
+     * @param hostName Hostname
+     * @param port     Port
      */
     public TransportRecord(String protocol, String hostName, int port)
     {
@@ -30,7 +30,7 @@ public final class TransportRecord
 
     /**
      * Create new TransportRecord
-     * @param buf buffer holding raw transport record
+     * @param buf Buffer holding raw transport record
      */
     public TransportRecord(Buffer buf)
     {
@@ -39,7 +39,7 @@ public final class TransportRecord
 
     /**
      * Get encoded len
-     * @return encoded length of the record
+     * @return Encoded length of the record
      */
     public int encodedLen()
     {
@@ -52,7 +52,7 @@ public final class TransportRecord
 
     /**
      * Encode the record
-     * @param buf destination buffer
+     * @param buf Destination buffer
      */
     public void encode(Buffer buf)
     {
@@ -63,7 +63,7 @@ public final class TransportRecord
 
     /**
      * Decode record
-     * @param buf source raw encoded record holder
+     * @param buf Source raw encoded record holder
      */
     public void decode(Buffer buf)
     {
@@ -74,7 +74,7 @@ public final class TransportRecord
 
     /**
      * to string
-     * @return string representation of the record
+     * @return String representation of the record
      */
     @Override
     public String toString()
@@ -92,8 +92,8 @@ public final class TransportRecord
 
     /**
      * Compare two records
-     * @param obj another record
-     * @return    true if both equals
+     * @param obj Another record
+     * @return    True if both equals
      */
     @Override
     public boolean equals(Object obj)
