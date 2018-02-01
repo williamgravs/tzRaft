@@ -39,7 +39,6 @@ public class TcpSock extends Sock
      * Receive data to this socket's buffer from OS socket
      *
      * @return Number of bytes received
-     *
      * @throws UncheckedIOException On any channel error
      */
     @Override

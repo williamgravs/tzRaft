@@ -131,7 +131,6 @@ public class TLSSock extends Sock
      * Send data in outgoing buffer
      * @return true if all data is sent
      */
-
     public boolean send()
     {
         write(sendBuf);
@@ -145,12 +144,21 @@ public class TLSSock extends Sock
         return false;
     }
 
+    /**
+     * TODO: Fix this along with the class
+     * @return
+     */
     @Override
     public ByteBuffer getSendBuf()
     {
         return ByteBuffer.allocateDirect(4080);
     }
 
+    /**
+     * Is connected?
+     * 
+     * @return True if connected
+     */
     @Override
     public boolean isConnected()
     {

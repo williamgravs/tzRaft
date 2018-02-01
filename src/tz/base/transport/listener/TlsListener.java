@@ -79,7 +79,6 @@ public class TlsListener extends Listener
      * Accept new TLS connection
      *
      * @return Sock object of accepted connection
-     *
      * @throws  UncheckedIOException if channel fails to accept
      */
     @Override

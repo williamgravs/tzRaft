@@ -72,7 +72,6 @@ public abstract class Listener implements Fd
 
     /**
      * Get local transport record
-     *
      * @return Local record
      */
     public TransportRecord getRecord()
@@ -81,7 +80,7 @@ public abstract class Listener implements Fd
     }
 
     /**
-     *
+     * To string
      * @return Local uri string
      */
     @Override

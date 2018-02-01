@@ -19,21 +19,32 @@ public abstract class Sock implements Fd
     private static final int IOV_MAX  = 512;
     private static final int BUF_SIZE = 5 * 1024 * 1024;
 
+    //TCP or TLS
     private final String protocol;
+
+    //Local ip:port
     private String localAddress;
+
+    //Remote ip:port
     private String remoteAddress;
+
+    //Local ip:port to remote ip:port
     private String str;
+
     protected final SocketChannel channel;
     protected SockOwner owner;
 
     SelectionKey key;
     final ByteBuffer recvBuf;
     final ByteBuffer sendBuf;
+
+    //Buffer list for scatter-gather io
     final BufferArray outBufs;
     boolean connected;
 
-    long receivedBytes;
-    long sentBytes;
+    //Metrics
+    private long receivedBytes;
+    private long sentBytes;
 
 
     /**
@@ -67,11 +78,19 @@ public abstract class Sock implements Fd
         }
     }
 
+    /**
+     * Total received bytes
+     * @return Total received bytes
+     */
     public long getReceivedBytes()
     {
         return receivedBytes;
     }
 
+    /**
+     * Total sent bytes
+     * @return Total sent bytes
+     */
     public long getSentBytes()
     {
         return sentBytes;
@@ -170,9 +189,9 @@ public abstract class Sock implements Fd
     /**
      * Connect call to remote
      *
-     * @param hostname remote hostname
-     * @param port     remote port
-     * @return         true if connection established immediately
+     * @param hostname Remote hostname
+     * @param port     Remote port
+     * @return         True if connection established immediately
      *
      * @throws UncheckedIOException On any socketchannel error
      */
@@ -218,7 +237,6 @@ public abstract class Sock implements Fd
      * Finalize connect process for non blocking sockets
      *
      * @return True if connection is established
-     *
      * @throws UncheckedIOException On any socketchannel error
      */
     public boolean finishConnect()
@@ -361,7 +379,6 @@ public abstract class Sock implements Fd
      * Read operation
      *
      * @param buf Buffer to read data in
-     *
      * @return    Number of bytes read, could be 0, if it s -1, indicates EOF
      *
      * @throws UncheckedIOException on any channel error
@@ -385,7 +402,6 @@ public abstract class Sock implements Fd
      * Write operation
      *
      * @param buf Buffer to write to socket
-     *
      * @return    Number of bytes written, could be 0
      *
      * @throws UncheckedIOException on any channel error
@@ -407,7 +423,6 @@ public abstract class Sock implements Fd
      * Write scatter gather operation
      *
      * @param bufs Buffers to write to socket
-     *
      * @return     Number of bytes written, could be 0
      *
      * @throws UncheckedIOException on any channel error
@@ -428,7 +443,6 @@ public abstract class Sock implements Fd
      * Relative write scatter gather operation
      *
      * @param bufs Buffers to write to socket
-     *
      * @return     Number of bytes written, could be 0
      *
      * @throws UncheckedIOException on any channel error
