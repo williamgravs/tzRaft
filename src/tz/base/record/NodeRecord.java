@@ -42,6 +42,7 @@ public class NodeRecord
 
     /**
      * Create new NodeRecord
+     *
      * @param name  node name
      * @param group group id
      */
@@ -55,6 +56,7 @@ public class NodeRecord
 
     /**
      * Create new NodeRecord
+     *
      * @param buf raw encoded node record
      */
     public NodeRecord(Buffer buf)
@@ -64,6 +66,9 @@ public class NodeRecord
         decode(buf);
     }
 
+    /**
+     * Clear records
+     */
     public void clearTransports()
     {
         transports.clear();

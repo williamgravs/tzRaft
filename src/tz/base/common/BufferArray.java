@@ -18,8 +18,8 @@ public class BufferArray
     /**
      * Create fixed length array of ByteBuffer's
      *
-     * @param   len
-     *          max count of the arrays
+     * @param len
+     *        max count of the arrays
      *
      */
     public BufferArray(int len)
@@ -31,12 +31,12 @@ public class BufferArray
     /**
      * Append bytebuffer to this array
      *
-     * @param   buf
-     *          ByteBuffer to append
+     * @param buf
+     *        ByteBuffer to append
      *
-     * @return  false if there is no space for a new ByteBuffer,
-     *          caller must try again when a read operation on this array is
-     *          done
+     * @return false if there is no space for a new ByteBuffer,
+     *         caller must try again when a read operation on this
+     *         array is done
      */
     public boolean add(ByteBuffer buf)
     {
@@ -52,7 +52,7 @@ public class BufferArray
     /**
      * Remove empty bytebuffers
      *
-     * @return  true if the array is fully empty
+     * @return true if the array is fully empty
      */
     public boolean popEmpties()
     {
@@ -77,7 +77,7 @@ public class BufferArray
     /**
      * Array backend of this object, mostly used for JDK calls
      *
-     * @return  ByteBuffer array
+     * @return ByteBuffer array
      *
      */
     public ByteBuffer[] getArray()
@@ -88,7 +88,7 @@ public class BufferArray
     /**
      * Get remaining space in the array
      *
-     * @return count of remaining spots in the array
+     * @return Count of remaining spots in the array
      *
      */
     public int remaining()
@@ -99,7 +99,7 @@ public class BufferArray
     /**
      * Get first index of ring logic
      *
-     * @return  value of the first ByteBuffer in backend array
+     * @return Value of the first ByteBuffer in backend array
      *
      */
     public int getOffset()
@@ -110,7 +110,7 @@ public class BufferArray
     /**
      * Get byteBuffers count
      *
-     * @return  count of byteBuffers held in this array
+     * @return Count of byteBuffers held in this array
      *
      */
     public int getCount()

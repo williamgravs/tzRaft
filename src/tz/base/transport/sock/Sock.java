@@ -42,7 +42,7 @@ public abstract class Sock implements Fd
      * @param channel  Channel for the Sock
      * @param protocol Protocol string, ex : tcp, tls
      *
-     * @throws IOException on any socketchannel error
+     * @throws UncheckedIOException on any IO error
      */
     protected Sock(SockOwner owner, SocketChannel channel, String protocol)
     {
@@ -79,9 +79,11 @@ public abstract class Sock implements Fd
 
     /**
      * Append buf to socket's outgoing list
+     *
      * @param buf ByteBuffer to send out via this socket, this buffer should be
      *            DirectByteBuffer
-     * @return    true if buffer added to outgoing list, if returns false,
+     *
+     * @return    True if buffer added to outgoing list, if returns false,
      *            caller should try later (after a send operation)
      */
     public boolean append(ByteBuffer buf)
@@ -123,6 +125,7 @@ public abstract class Sock implements Fd
 
     /**
      * Get receive buffer of the socket
+     *
      * @return Buffer holding read data from socket
      */
     public ByteBuffer getRecvBuf()
@@ -132,6 +135,7 @@ public abstract class Sock implements Fd
 
     /**
      * Get send buffer of the socket
+     *
      * @return Outgoing buffer of the socket
      */
     public ByteBuffer getSendBuf()
@@ -142,7 +146,7 @@ public abstract class Sock implements Fd
     /**
      * If the socket has data to be sent
      *
-     * @return true if this buffer does not have unsent remaining data
+     * @return True if this buffer does not have unsent remaining data
      */
     public boolean hasRemaining()
     {
@@ -151,14 +155,15 @@ public abstract class Sock implements Fd
 
     /**
      * Recv call
-     * @return received byte count
+     *
+     * @return Received byte count
      */
     public abstract int recv();
 
     /**
      * Send call for scather gather IO
-     * @return true if all bufs are sent
-     * @throws IOException on any socketchannel error
+     * @return True if all bufs are sent
+     * @throws IOException On any socketchannel error
      */
     public abstract boolean sendAll();
 
@@ -169,7 +174,7 @@ public abstract class Sock implements Fd
      * @param port     remote port
      * @return         true if connection established immediately
      *
-     * @throws IOException on any socketchannel error
+     * @throws UncheckedIOException On any socketchannel error
      */
     public boolean connect(String hostname, int port)
     {
@@ -184,7 +189,7 @@ public abstract class Sock implements Fd
     /**
      * Gather socket info and create string representation
      *
-     * @throws IOException on any socketchannel error
+     * @throws UncheckedIOException On any socketchannel error
      */
     private void gatherInfo()
     {
@@ -212,8 +217,9 @@ public abstract class Sock implements Fd
     /**
      * Finalize connect process for non blocking sockets
      *
-     * @return true if connection is established
-     * @throws IOException on any socketchannel error
+     * @return True if connection is established
+     *
+     * @throws UncheckedIOException On any socketchannel error
      */
     public boolean finishConnect()
     {
@@ -287,12 +293,13 @@ public abstract class Sock implements Fd
 
     /**
      * Change interest ops of the sock
-     * @param op Interest ops flag
+     * @param op
+     *        Interest ops flag
      *
-     * @throws  IllegalArgumentException
-     *          If a bit in the set does not correspond to an operation that
-     *          is supported by this key's channel, that is, if
-     *          {@code (ops & ~channel().validOps()) != 0}
+     * @throws IllegalArgumentException
+     *         If a bit in the set does not correspond to an operation that
+     *         is supported by this key's channel, that is, if
+     *         {@code (ops & ~channel().validOps()) != 0}
      *
      * @throws CancelledKeyException
      *          If this key has been cancelled
@@ -305,8 +312,8 @@ public abstract class Sock implements Fd
     /**
      * Closes this channel.
      *
-     * @throws  UncheckedIOException
-     *          If an I/O error occurs
+     * @throws UncheckedIOException
+     *         If an I/O error occurs
      */
     public void close()
     {
@@ -354,6 +361,7 @@ public abstract class Sock implements Fd
      * Read operation
      *
      * @param buf Buffer to read data in
+     *
      * @return    Number of bytes read, could be 0, if it s -1, indicates EOF
      *
      * @throws UncheckedIOException on any channel error
@@ -377,6 +385,7 @@ public abstract class Sock implements Fd
      * Write operation
      *
      * @param buf Buffer to write to socket
+     *
      * @return    Number of bytes written, could be 0
      *
      * @throws UncheckedIOException on any channel error
@@ -398,6 +407,7 @@ public abstract class Sock implements Fd
      * Write scatter gather operation
      *
      * @param bufs Buffers to write to socket
+     *
      * @return     Number of bytes written, could be 0
      *
      * @throws UncheckedIOException on any channel error
@@ -418,6 +428,7 @@ public abstract class Sock implements Fd
      * Relative write scatter gather operation
      *
      * @param bufs Buffers to write to socket
+     *
      * @return     Number of bytes written, could be 0
      *
      * @throws UncheckedIOException on any channel error
@@ -437,7 +448,7 @@ public abstract class Sock implements Fd
 
     /**
      * toString
-     * @return string representation of the socket
+     * @return String representation of the socket
      */
     public String toString()
     {

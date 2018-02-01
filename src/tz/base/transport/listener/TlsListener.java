@@ -31,9 +31,9 @@ public class TlsListener extends Listener
     /**
      * Create new TLS listener
      *
-     * @param owner    owner of the listener object
-     * @param selector selector to cache this listener in
-     * @param record   local record to bind and listen
+     * @param owner    Owner of the listener object
+     * @param selector Selector to cache this listener in
+     * @param record   Local record to bind and listen
      * @param config   TLS config data (keys, certs, CA's)
      *
      * @exception TlsException if tls config is inconsistent
@@ -77,6 +77,7 @@ public class TlsListener extends Listener
 
     /**
      * Accept new TLS connection
+     *
      * @return Sock object of accepted connection
      *
      * @throws  UncheckedIOException if channel fails to accept
@@ -97,6 +98,7 @@ public class TlsListener extends Listener
 
     /**
      * Inform this listener that it is about to shutdown
+     *
      * @param e Related exception caused this FD's shutdown method called
      */
     @Override

@@ -25,7 +25,7 @@ public class SelectorPoll extends Poll
     /**
      * Create a new SelectorPoll
      *
-     * @param  worker Worker thread for this poller
+     * @param worker Worker thread for this poller
      */
     public SelectorPoll(Worker worker)
     {
@@ -46,7 +46,7 @@ public class SelectorPoll extends Poll
     /**
      * Get selector
      *
-     * @return  Selector
+     * @return Selector
      */
     @Override
     public Selector getSelector()
@@ -57,8 +57,8 @@ public class SelectorPoll extends Poll
     /**
      * Register socket with interest ops
      *
-     * @param  sock  Socket
-     * @param  ops   Interest Ops
+     * @param sock Socket
+     * @param ops  Interest Ops
      *
      */
     public void add(Sock sock, int ops)
@@ -69,7 +69,7 @@ public class SelectorPoll extends Poll
     /**
      * Add event
      *
-     * @param  event  Event object to be processed
+     * @param event Event object to be processed
      */
     @Override
     public void addEvent(Event event)
@@ -89,7 +89,7 @@ public class SelectorPoll extends Poll
     /**
      * Process selected keys
      *
-     * @param  readyKeys  Keys ready to be processed
+     * @param readyKeys Keys ready to be processed
      */
     private void processSelect(Set<SelectionKey> readyKeys)
     {

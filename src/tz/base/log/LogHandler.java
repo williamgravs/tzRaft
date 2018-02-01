@@ -11,11 +11,11 @@ public interface LogHandler
      * safe, multiple threads can call simultaneously,
      * so implementation should use proper locking
      *
-     * @param  level       log level
-     * @param  timestamp   log timestamp
-     * @param  threadName  log producer thread's name
-     * @param  log         log line
-     * @param  t           exception if any
+     * @param level      Log level
+     * @param timestamp  Log timestamp
+     * @param threadName Log producer thread's name
+     * @param log        Log line
+     * @param t          Exception if any
      */
     void onLog(Level level, long timestamp,
                String threadName, String log, Throwable t);

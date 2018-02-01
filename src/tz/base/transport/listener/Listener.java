@@ -32,7 +32,7 @@ public abstract class Listener implements Fd
      * @param selector Selector of the owner loop
      * @param record   Record indicated local endpoint
      *
-     * @throws UncheckedIOException on any IO error
+     * @throws UncheckedIOException On any IO error
      */
     protected Listener(ListenerOwner owner,
                        Selector selector, TransportRecord record)
@@ -72,6 +72,7 @@ public abstract class Listener implements Fd
 
     /**
      * Get local transport record
+     *
      * @return Local record
      */
     public TransportRecord getRecord()

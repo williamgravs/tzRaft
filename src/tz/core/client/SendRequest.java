@@ -2,8 +2,6 @@ package tz.core.client;
 
 import tz.base.poll.Event;
 
-import java.nio.ByteBuffer;
-
 public class SendRequest implements Event
 {
     public final Client client;

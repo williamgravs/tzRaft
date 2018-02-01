@@ -9,7 +9,7 @@ public interface Fd
      * This method is called when Fd needs to be shutdown, indicates error
      * mostly
      *
-     * @param  e  Related exception caused this FD's shutdown method called
+     * @param e Related exception caused this FD's shutdown method called
      */
     void shutdown(Exception e);
 

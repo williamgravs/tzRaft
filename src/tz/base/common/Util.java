@@ -17,8 +17,8 @@ public class Util
      * This method must not use System.currentTimeMillis() as it does not
      * provide incremental guarantee.
      *
-     * @return  the current value of the running Java Virtual Machine's
-     *          high-resolution time source, in milliseconds.
+     * @return The current value of the running Java Virtual Machine's
+     *         high-resolution time source, in milliseconds.
      *
      */
     public static long time()
@@ -31,7 +31,7 @@ public class Util
      * Line separators are different among different OS, so this method
      * should be called whenever a line separator needed
      *
-     * @return  Line separator string
+     * @return Line separator string
      */
     public static String newLine()
     {
@@ -60,11 +60,10 @@ public class Util
     /**
      * Read little endian integer from inputstream
      *
-     * @param   in
-     *          input stream
+     * @param in input stream
      *
-     * @return  little integer read from stream
-     * @throws  IOException If stream has less than 4 bytes exception is thrown
+     * @return Little integer read from stream
+     * @throws IOException If stream has less than 4 bytes exception is thrown
      */
     public static int readInt(InputStream in) throws IOException
     {
@@ -82,11 +81,11 @@ public class Util
 
     /**
      * Read variable sized int from inputstream
-     * @param   in          stream holding integer value
-     * @return              decoded integer
-     * @throws  IOException if stream has less bytes than required IOException
-     *                      is thrown. Variable sized integers represented
-     *                      with at least 1 byte, up to 5 bytes at most
+     * @param  in          stream holding integer value
+     * @return             decoded integer
+     * @throws IOException if stream has less bytes than required IOException
+     *                     is thrown. Variable sized integers represented
+     *                     with at least 1 byte, up to 5 bytes at most
      */
     public static int readVarInt(InputStream in) throws IOException
     {

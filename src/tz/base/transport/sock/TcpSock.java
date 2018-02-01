@@ -17,6 +17,7 @@ public class TcpSock extends Sock
      *
      * @param owner   Socket owner
      * @param channel Channel of the socket
+     *
      * @throws UncheckedIOException on any channel error
      */
     public TcpSock(SockOwner owner, SocketChannel channel)
@@ -37,8 +38,9 @@ public class TcpSock extends Sock
     /**
      * Receive data to this socket's buffer from OS socket
      *
-     * @return number of bytes received
-     * @throws UncheckedIOException on any channel error
+     * @return Number of bytes received
+     *
+     * @throws UncheckedIOException On any channel error
      */
     @Override
     public int recv()
@@ -54,10 +56,10 @@ public class TcpSock extends Sock
     }
 
     /**
-     * Send call for scather gather IO
+     * Send call for scatter gather IO
      *
-     * @return true if all buffers are written to socket's buffer
-     * @throws UncheckedIOException on any channel error
+     * @return True if all buffers are written to socket's buffer
+     * @throws UncheckedIOException On any channel error
      */
     @Override
     public boolean sendAll()

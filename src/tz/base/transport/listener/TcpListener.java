@@ -48,7 +48,7 @@ public class TcpListener extends Listener implements Fd
     /**
      * Accept TCP connection
      *
-     * @return new Sock object for accepted connection
+     * @return New Sock object for accepted connection
      *
      * @exception UncheckedIOException if channel fails to accept
      */

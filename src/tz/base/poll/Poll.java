@@ -24,11 +24,10 @@ public class Poll
     //Event holder, mostly events from other threads
     final ArrayBlockingQueue<Event> queue;
 
-    Deque<Event> events;
+    private Deque<Event> events;
     Timer timer;
 
     boolean stop;
-    private int count;
 
     /**
      * Create new Poll
@@ -67,7 +66,7 @@ public class Poll
      * Pass an event to this poll, mostly called by other threads than this
      * one's owner
      *
-     * @param  event  Event object to be processed
+     * @param event Event object to be processed
      */
     public void addEvent(Event event)
     {
@@ -98,7 +97,7 @@ public class Poll
     /**
      * Main loop for a thread
      *
-     * @throws  IOException  If selector fails
+     * @throws IOException If selector fails
      */
     public void loop() throws IOException, InterruptedException
     {
@@ -122,7 +121,7 @@ public class Poll
     /**
      * Add Timer
      *
-     * @param  event  Timer to add
+     * @param event Timer to add
      */
     public void addTimer(TimerEvent event)
     {
@@ -132,7 +131,7 @@ public class Poll
     /**
      * Remove timer
      *
-     * @param  event  Timer to remove
+     * @param event Timer to remove
      */
     public void removeTimer(TimerEvent event)
     {
@@ -144,8 +143,7 @@ public class Poll
      *
      * @return Selector
      *
-     * @throws  UnsupportedOperationException
-     *          When not overridden
+     * @throws UnsupportedOperationException When not overridden
      */
     public Selector getSelector()
     {
@@ -155,11 +153,11 @@ public class Poll
     /**
      * Add socket with options to selector of this Poll object
      *
-     * @param  sock  Socket
-     * @param  ops   Interest Ops
+     * @param sock Socket
+     * @param ops  Interest Ops
      *
-     * @throws  UnsupportedOperationException
-     *          When not overridden
+     * @throws UnsupportedOperationException
+     *         When not overridden
      */
     public void add(Sock sock, int ops)
     {

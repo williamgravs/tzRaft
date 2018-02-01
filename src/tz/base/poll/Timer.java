@@ -20,7 +20,7 @@ public class Timer
     /**
      * Add timer
      *
-     * @param  event Timer event
+     * @param event Timer event
      */
     public void add(TimerEvent event)
     {
@@ -30,7 +30,7 @@ public class Timer
     /**
      * Remove timer
      *
-     * @param  event Timer event
+     * @param event Timer event
      */
     public void remove(TimerEvent event)
     {
@@ -41,9 +41,9 @@ public class Timer
      * Execute timers for timestamp, return first timer's timeout for next
      * iteration
      *
-     * @param  timestamp Current timestamp
+     * @param timestamp Current timestamp
      *
-     * @return  Next timeout
+     * @return Next timeout
      */
     public long execute(long timestamp)
     {

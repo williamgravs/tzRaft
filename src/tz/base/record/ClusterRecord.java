@@ -17,6 +17,7 @@ public class ClusterRecord
 
     /**
      * Create new ClusterRecord
+     *
      * @param name cluster name
      */
     public ClusterRecord(String name)
@@ -27,7 +28,8 @@ public class ClusterRecord
 
     /**
      * Create new ClusterRecord
-     * @param buf raw encoded clusterRecord
+     *
+     * @param buf Raw encoded clusterRecord
      */
     public ClusterRecord(Buffer buf)
     {
@@ -43,8 +45,9 @@ public class ClusterRecord
 
     /**
      * Get record by name
-     * @param name record name
-     * @return   record of the node
+     *
+     * @param name Record name
+     * @return     Record of the node
      */
     public NodeRecord getRecord(String name)
     {
@@ -57,6 +60,13 @@ public class ClusterRecord
         return null;
     }
 
+    /**
+     * Remove record
+     *
+     * @param name Record name
+     *
+     * @return     Removed record
+     */
     public NodeRecord removeRecord(String name)
     {
         for (int i = 0; i < peers.size(); i++) {
@@ -71,7 +81,8 @@ public class ClusterRecord
 
     /**
      * Get encoded len
-     * @return encoded length of the record
+     *
+     * @return Encoded length of the record
      */
     public int rawLen()
     {
@@ -87,7 +98,8 @@ public class ClusterRecord
 
     /**
      * Encode the record
-     * @param buf destination buffer for encoded record
+     *
+     * @param buf Destination buffer for encoded record
      */
     public void encode(Buffer buf)
     {
@@ -101,7 +113,8 @@ public class ClusterRecord
 
     /**
      * Decode the record
-     * @param buf raw encoded record holder buffer
+     *
+     * @param buf Raw encoded record holder buffer
      */
     public void decode(Buffer buf)
     {
@@ -116,7 +129,8 @@ public class ClusterRecord
 
     /**
      * Add node to cluster peers
-     * @param node new node
+     *
+     * @param node New node
      */
     public void addNode(NodeRecord node)
     {
@@ -127,8 +141,9 @@ public class ClusterRecord
 
     /**
      * Equals
-     * @param obj compare obj
-     * @return    true if this object equals to 'obj'
+     *
+     * @param obj Compare obj
+     * @return    True if this object equals to 'obj'
      */
     @Override
     public boolean equals(Object obj)
@@ -146,6 +161,11 @@ public class ClusterRecord
         return name.equals(other.name);
     }
 
+    /**
+     * toString
+     *
+     * @return String representation of the cluster record
+     */
     @Override
     public String toString()
     {
