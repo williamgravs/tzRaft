@@ -82,23 +82,10 @@ public class ClientTest implements ClientListener
             for (int i = 0; i < 10000; i++) {
                 //String str = UUID.randomUUID().toString();
                 ByteBuffer bb = createPut("" + i % 1000, str);
-                long ts = System.nanoTime();
                 FutureRequest put = client.sendRequest(bb);
-                put.ts = ts;
                 put.thenAccept(s ->  {
-                    //requestCompleted(put.getSequence(), put.getResponse());
-                    //System.out.println(name + " " + put.getSequence() + " Latency : " + TimeUnit.MICROSECONDS.convert((System.nanoTime() - put.ts), TimeUnit.NANOSECONDS));
-                    System.out.println(name + " " + put.getSequence() + " Latency : " + TimeUnit.MICROSECONDS.convert((System.nanoTime() - put.ts), TimeUnit.NANOSECONDS));
-                    if (put.getSequence() == 9999) {
-                        System.out.println(name + " " + put.getSequence() + " Total : " + TimeUnit.MICROSECONDS.convert((System.nanoTime() - before), TimeUnit.NANOSECONDS));
-
-                    }
+                    System.out.println("Request completed for : " + put.getSequence());
                 });
-
-
-
-
-                //Thread.sleep(5);
             }
         }
         catch (Exception e) {
@@ -133,16 +120,6 @@ public class ClientTest implements ClientListener
     public void connectionState(boolean connected)
     {
         System.out.println("Connected : " + connected);
-    }
-
-    @Override
-    public void requestCompleted(long index, ByteBuffer buf)
-    {
-        //System.out.println("Request completed for index : "+ index +
-          //                                  " with size : " + buf.remaining());
-        Buffer buffer = new Buffer(buf);
-       // System.out.println("Index : " + index + "Read : " + buffer.getString());
-
     }
 
     @Override

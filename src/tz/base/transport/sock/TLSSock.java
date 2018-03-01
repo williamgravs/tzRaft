@@ -156,7 +156,7 @@ public class TLSSock extends Sock
 
     /**
      * Is connected?
-     * 
+     *
      * @return True if connected
      */
     @Override

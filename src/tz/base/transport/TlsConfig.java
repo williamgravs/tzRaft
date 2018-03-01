@@ -19,16 +19,16 @@ public class TlsConfig
 
     /**
      * Create new Tls config
-     * @param serverKeyStore            server side keystore path
-     * @param serverKeyStorePassword    server side keystore password
-     * @param serverKeyStoreKeyPassword server side keystore key password
-     * @param serverTrustStore          server side truststore path
-     * @param serverTrustStorePassword  server side truststore password
-     * @param clientKeyStore            client side keystore path
-     * @param clientKeyStorePassword    client side keystore password
-     * @param clientKeyStoreKeyPassword client side keystore key password
-     * @param clientTrustStore          client side truststore path
-     * @param clientTrustStorePassword  client side truststore password
+     * @param serverKeyStore            Server side keystore path
+     * @param serverKeyStorePassword    Server side keystore password
+     * @param serverKeyStoreKeyPassword Server side keystore key password
+     * @param serverTrustStore          Server side truststore path
+     * @param serverTrustStorePassword  Server side truststore password
+     * @param clientKeyStore            Client side keystore path
+     * @param clientKeyStorePassword    Client side keystore password
+     * @param clientKeyStoreKeyPassword Client side keystore key password
+     * @param clientTrustStore          Client side truststore path
+     * @param clientTrustStorePassword  Client side truststore password
      */
     public TlsConfig(String serverKeyStore, String serverKeyStorePassword,
                      String serverKeyStoreKeyPassword,

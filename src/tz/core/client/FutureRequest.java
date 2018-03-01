@@ -5,17 +5,24 @@ import tz.core.msg.ClientReq;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * CompletableFuture for client request
+ */
 public class FutureRequest extends CompletableFuture<ByteBuffer>
 {
-    ClientReq request;
-    private long index;
-    private ByteBuffer response;
-    public long ts;
+    //Original request
+    private ClientReq request;
 
-    public FutureRequest(ClientReq request, long index)
+    //Response
+    private ByteBuffer response;
+
+    /**
+     * Create a new FutureRequest
+     * @param request Client request
+     */
+    public FutureRequest(ClientReq request)
     {
         this.request = request;
-        this.index   = index;
     }
 
     public long getSequence()
@@ -36,11 +43,6 @@ public class FutureRequest extends CompletableFuture<ByteBuffer>
     public void setResponse(ByteBuffer response)
     {
         this.response = response;
-    }
-
-    public long getIndex()
-    {
-        return index;
     }
 
     public ByteBuffer getResponse()

@@ -322,7 +322,7 @@ public class Client extends Worker implements SockOwner, MsgHandler
                                          acknowledge, data);
         reqMsg.encode();
 
-        FutureRequest req = new FutureRequest(reqMsg, currentSequence);
+        FutureRequest req = new FutureRequest(reqMsg);
         addEvent(new SendRequest(this, req));
 
         return req;
