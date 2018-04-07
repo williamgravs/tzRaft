@@ -27,8 +27,9 @@ public class ConfigCommand extends Command
 
     /**
      * Create new ConfigCommand
-     * @param buf raw encoded command
-     * @param len raw encoded length
+     *
+     * @param buf Raw encoded command
+     * @param len Raw encoded length
      */
     public ConfigCommand(Buffer buf, int len)
     {
@@ -41,7 +42,7 @@ public class ConfigCommand extends Command
 
     /**
      * Get the record
-     * @return cluster record
+     * @return Cluster record
      */
     public ClusterRecord getRecord()
     {
@@ -80,7 +81,7 @@ public class ConfigCommand extends Command
 
     /**
      * Calculate encoded length of the command
-     * @return encoded length of this command
+     * @return Encoded length of this command
      */
     @Override
     public int encodedLen()
@@ -92,7 +93,7 @@ public class ConfigCommand extends Command
 
     /**
      * Call handler of the command
-     * @param handler command handler
+     * @param handler Command handler
      */
     @Override
     public Response execute(CommandExecutor handler)

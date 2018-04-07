@@ -25,8 +25,8 @@ public abstract class Command
     /**
      * Create new Command
      *
-     * @param buf encoded buffer of the command
-     * @param len length of the encoded command
+     * @param buf Encoded buffer of the command
+     * @param len Length of the encoded command
      */
     protected Command(Buffer buf, int len)
     {
@@ -37,8 +37,8 @@ public abstract class Command
     /**
      * Decode an encoded command
      *
-     * @param buf encoded buffer of the command
-     * @return    decoded command as an object
+     * @param buf Encoded buffer of the command
+     * @return    Decoded command as an object
      *
      * @throws UnsupportedOperationException if command type is unknown
      */
@@ -65,7 +65,7 @@ public abstract class Command
     /**
      * Get encoded command
      *
-     * @return encoded command
+     * @return Encoded command
      */
     public ByteBuffer getRaw()
     {
@@ -84,9 +84,14 @@ public abstract class Command
 
     /**
      * Get encoded length of the command
-     * @return encoded length
+     * @return Encoded length
      */
     abstract int encodedLen();
 
+    /**
+     * Execute command
+     * @param executor Command executer
+     * @return         Response
+     */
     public abstract Response execute(CommandExecutor executor);
 }
