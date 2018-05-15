@@ -1,0 +1,92 @@
+package tz.core.cluster.command;
+
+import tz.base.common.Buffer;
+import tz.core.cluster.state.Response;
+
+import java.nio.ByteBuffer;
+
+/**
+ * Abstract command class for state machine operations
+ */
+public abstract class Command
+{
+    protected int length;
+    protected Buffer rawMsg;
+    protected boolean rawReady;
+
+    /**
+     * Create new Command
+     */
+    protected Command()
+    {
+
+    }
+
+    /**
+     * Create new Command
+     *
+     * @param buf encoded buffer of the command
+     * @param len length of the encoded command
+     */
+    protected Command(Buffer buf, int len)
+    {
+        this.rawMsg = buf;
+        this.length = len;
+    }
+
+    /**
+     * Decode an encoded command
+     *
+     * @param buf encoded buffer of the command
+     * @return    decoded command as an object
+     *
+     * @throws UnsupportedOperationException if command type is unknown
+     */
+    public static Command create(Buffer buf)
+    {
+        int len  = buf.getVarInt();
+        int type = buf.get();
+
+        switch (type) {
+            case NoOPCommand.TYPE:
+                return new NoOPCommand();
+            case RegisterCommand.TYPE:
+                return new RegisterCommand(buf, len);
+            case UnregisterCommand.TYPE:
+                return new UnregisterCommand(buf, len);
+            case ConfigCommand.TYPE:
+                return new ConfigCommand(buf, len);
+
+            default:
+                throw new UnsupportedOperationException("Unknown msg type : " + type);
+        }
+    }
+
+    /**
+     * Get encoded command
+     *
+     * @return encoded command
+     */
+    public ByteBuffer getRaw()
+    {
+        return rawMsg.backend();
+    }
+
+    /**
+     * Encode the command
+     */
+    abstract void encode();
+
+    /**
+     * Decode the command
+     */
+    abstract void decode();
+
+    /**
+     * Get encoded length of the command
+     * @return encoded length
+     */
+    abstract int encodedLen();
+
+    public abstract Response execute(CommandExecutor executor);
+}
