@@ -51,6 +51,9 @@ public class MapState extends State
         boolean put = buffer.getBoolean();
         if (put) {
             ret = map.put(buffer.getString(), buffer.getString());
+            ByteBuffer b = ByteBuffer.allocate(1);
+            b.flip();
+            return b;
         }
         else {
             ret = map.get(buffer.getString());

@@ -86,6 +86,11 @@ public class PreVoteResp extends Msg
         return index;
     }
 
+    public boolean isGranted()
+    {
+        return granted;
+    }
+
     @Override
     public String toString()
     {

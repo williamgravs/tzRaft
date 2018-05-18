@@ -1,6 +1,7 @@
 package tz.core;
 
 import tz.base.common.Buffer;
+import tz.base.common.Util;
 import tz.base.record.TransportRecord;
 import tz.base.transport.sock.Sock;
 import tz.base.transport.sock.SockOwner;
@@ -17,6 +18,7 @@ import java.util.Deque;
 import java.util.PrimitiveIterator;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Connection
@@ -25,6 +27,14 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class Connection implements SockOwner, MsgHandler
 {
+    public enum Status
+    {
+        INCOMING,
+        OUTGOING_SUCCEED,
+        OUTGOING_FAILED,
+        DISCONNECTED
+    }
+
     private IOWorker worker;
     private Sock sock;
     private TransportRecord record;
@@ -70,6 +80,11 @@ public class Connection implements SockOwner, MsgHandler
         this.attachment = attachment;
     }
 
+    public boolean hasAttachment()
+    {
+        return attachment != null;
+    }
+
     /**
      * Get string representation
      * @return string representation
@@ -77,7 +92,12 @@ public class Connection implements SockOwner, MsgHandler
     @Override
     public String toString()
     {
-        return sock.getRemoteAddress();
+        if (sock.getRemoteAddress() != null) {
+            return sock.getRemoteAddress();
+        }
+        else {
+            return record.toString();
+        }
     }
 
     /**
@@ -135,11 +155,13 @@ public class Connection implements SockOwner, MsgHandler
     public void disconnect(boolean error)
     {
         if (error) {
-            worker.handleConnectionUpdate(this, false);
+            worker.handleConnectionUpdate(this, Status.DISCONNECTED);
         }
 
-        sock.close();
-        sock = null;
+        if (sock != null) {
+            sock.close();
+            sock = null;
+        }
     }
 
     /**
@@ -186,7 +208,7 @@ public class Connection implements SockOwner, MsgHandler
             msg.encode();
             msg.writeTo(sock);
             if (msg.written()) {
-                worker.logInfo("Msg sent : ", msg);
+                worker.logInfo("Msg sent : ", msg, " to ", this);
                 sentMsgCount++;
                 outgoings.pop();
             }
@@ -221,7 +243,7 @@ public class Connection implements SockOwner, MsgHandler
             }
         }
         catch (UncheckedIOException e) {
-            worker.handleConnectionUpdate(this, false);
+            worker.handleConnectionUpdate(this, Status.OUTGOING_FAILED);
         }
     }
 
@@ -235,6 +257,7 @@ public class Connection implements SockOwner, MsgHandler
     @Override
     public void handleShutdown(Exception e, Sock sock)
     {
+        worker.logError(e, sock);
         disconnect(true);
     }
 
@@ -249,11 +272,11 @@ public class Connection implements SockOwner, MsgHandler
         try {
             if (sock.finishConnect()) {
                 sock.setOp(SelectionKey.OP_READ);
-                worker.handleConnectionUpdate(this, true);
+                worker.handleConnectionUpdate(this, Status.OUTGOING_SUCCEED);
             }
         }
         catch (Exception e) {
-            worker.logWarn("Cannot connect to ", this);
+            worker.handleConnectionUpdate(this, Status.OUTGOING_FAILED);
         }
     }
 
@@ -283,22 +306,14 @@ public class Connection implements SockOwner, MsgHandler
                     break;
                 }
 
-                worker.logInfo("Recevied msg : ", msg);
-                msg.handle(this);
-            }
-
-            if (!incomings.isEmpty()) {
-                Deque<Msg> tmp = incomings;
-                incomings = new ArrayDeque<>();
-                worker.handleIncomingMsg(this, tmp);
+                worker.logInfo("Recevied msg : ", msg, " from ", this);
+                worker.handleIncomingMsg(this, msg);
             }
 
             if (willDisconnect) {
                 disconnect(true);
             }
         }
-
-        //worker.logInfo("Received : ", sock.getReceivedBytes(), " sent : ", sock.getSentBytes());
     }
 
     /**
@@ -311,7 +326,6 @@ public class Connection implements SockOwner, MsgHandler
         sock.setOp(SelectionKey.OP_READ);
 
         if (!sock.sendAll()) {
-            //worker.logInfo("Received : ", sock.getReceivedBytes(), " sent : ", sock.getSentBytes());
             return;
         }
 
@@ -321,7 +335,7 @@ public class Connection implements SockOwner, MsgHandler
     @Override
     public void handleConnectReq(ConnectReq msg)
     {
-        worker.handleIncomingConn(this, msg);
+        incomings.add(msg);
     }
 
     @Override

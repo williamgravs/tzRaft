@@ -1,5 +1,6 @@
 package tz.core.cluster;
 
+import tz.base.poll.TimerEvent;
 import tz.base.record.ClusterRecord;
 import tz.base.record.NodeRecord;
 import tz.base.record.TransportRecord;
@@ -11,6 +12,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
+import java.util.Random;
 
 public class Node implements MsgHandler
 {
@@ -25,6 +27,13 @@ public class Node implements MsgHandler
     {
         PEER,
         CLIENT
+    }
+
+    enum State
+    {
+        CONNECTED,
+        CONNECTION_IN_PROGRESS,
+        DISCONNECTED,
     }
 
     private Cluster cluster;
@@ -48,39 +57,60 @@ public class Node implements MsgHandler
 
     private long inTimestamp;
     private long outTimestamp;
-    private boolean connected;
+    private State connectionState;
 
     private int transport;
+    private final TimerEvent reconnectTimer;
 
     public Node(Cluster cluster, Connection conn,
                 NodeRecord local, NodeRecord remote, Type type)
     {
-        this.cluster = cluster;
-        this.worker  = cluster.getIoWorker();
-        this.conn    = conn;
-        this.local   = local;
-        this.remote  = remote;
-        this.type    = type;
+        this.cluster    = cluster;
+        this.worker     = cluster.getIoWorker();
+        this.conn       = conn;
+        this.local      = local;
+        this.remote     = remote;
+        this.type       = type;
 
-        nextIndex    = 0;
-        matchIndex   = 0;
-        incomings    = new ArrayDeque<>();
-        outgoings    = new ArrayDeque<>();
-        role         = Role.FOLLOWER;
-        transport    = 0;
-        connected    = false;
-        inTimestamp  = cluster.timestamp();
-        outTimestamp = cluster.timestamp();
+        nextIndex       = 0;
+        matchIndex      = 0;
+        incomings       = new ArrayDeque<>();
+        outgoings       = new ArrayDeque<>();
+        role            = Role.FOLLOWER;
+        transport       = 0;
+        connectionState = State.DISCONNECTED;
+        inTimestamp     = cluster.timestamp();
+        outTimestamp    = cluster.timestamp();
+
+        reconnectTimer  = new ReconnectTimer(cluster, this, false,
+                                             new Random().nextInt(2000), 0);
 
         if (conn != null) {
-            connected = true;
+            connectionState = State.CONNECTED;
             conn.setAttachment(this);
         }
+    }
+
+    public void reconnect()
+    {
+        conn = null;
+        reconnectTimer.timeout = cluster.timestamp() + reconnectTimer.interval;
+        cluster.addTimer(reconnectTimer);
+    }
+
+    public void stopReconnectTimer()
+    {
+        cluster.removeTimer(reconnectTimer);
     }
 
     public boolean isClient()
     {
         return type == Type.CLIENT;
+    }
+
+    public boolean isPeer()
+    {
+        return type == Type.PEER;
     }
 
     public void setId(int id)
@@ -159,16 +189,16 @@ public class Node implements MsgHandler
         return id;
     }
 
-    public void addIncomingMsgs(Deque<Msg> msgs)
+    public void addIncomingMsg(Msg msg)
     {
-        incomings.addAll(msgs);
+        incomings.add(msg);
     }
 
     public void handleMsgs()
     {
         inTimestamp = cluster.timestamp();
         for (Msg msg : incomings) {
-            if (!connected) {
+            if (connectionState != State.CONNECTED) {
                 break;
             }
             msg.handle(this);
@@ -177,46 +207,64 @@ public class Node implements MsgHandler
         incomings.clear();
     }
 
+    public boolean isDisconnected()
+    {
+        return connectionState == State.DISCONNECTED;
+    }
+
+    public boolean isConnected()
+    {
+        return connectionState == State.CONNECTED;
+    }
+
     public boolean isConnectionValid(Connection conn)
     {
         return this.conn == conn;
     }
 
-    public void markConnected()
+    public boolean isConnectionInProgress()
     {
-        connected = true;
+        return connectionState == State.CONNECTION_IN_PROGRESS;
+    }
+
+    public boolean isValid(Connection conn)
+    {
+        return this.conn == conn;
+    }
+
+    public void setConnected()
+    {
+        connectionState = State.CONNECTED;
+        stopReconnectTimer();
     }
 
     public void setConnection(Connection other)
     {
-        if (this.conn != null) {
+        if (conn != null && conn != other) {
             worker.cancelConnection(conn);
         }
 
         conn = other;
         conn.setAttachment(this);
-        connected = true;
+        setConnected();
     }
 
     public void connect()
     {
-        List<TransportRecord> transports;
-
-        transports = local.isSameGroup(remote) ? local.transports :
-                                                 local.secureTransports;
-
+        List<TransportRecord> transports = remote.transports;
         TransportRecord record = transports.get(transport++ % transports.size());
 
         conn = new Connection(worker, null, record);
         conn.setAttachment(this);
         worker.addConnection(conn);
+        connectionState = State.CONNECTION_IN_PROGRESS;
     }
 
     public void disconnect()
     {
         cluster.getIoWorker().cancelConnection(conn);
         conn = null;
-        connected = false;
+        connectionState = State.DISCONNECTED;
     }
 
     public void sendConnectReq(String clusterName, String nodeName, boolean client)
@@ -241,21 +289,21 @@ public class Node implements MsgHandler
         worker.addOutgoingMsg(conn, new PreVoteResp(term, index, granted));
     }
 
-    public void sendRequestVote(long term, long lastLogIndex,
-                                long lastLogTerm, boolean leaderTransfer)
+    public void sendReqVoteReq(long term, long lastLogIndex,
+                               long lastLogTerm, boolean leaderTransfer)
     {
         worker.addOutgoingMsg(conn, new ReqVoteReq(term, lastLogIndex,
                                                    lastLogTerm, leaderTransfer));
     }
 
-    public void sendRequestVoteResp(long term, long index, boolean granted)
+    public void sendReqVoteResp(long term, long index, boolean granted)
     {
         worker.addOutgoingMsg(conn, new ReqVoteResp(term, index, granted));
     }
 
-    public void sendAppendReq(AppendReq appendEntries)
+    public void sendAppendReq(AppendReq appendReq)
     {
-        worker.addOutgoingMsg(conn, appendEntries);
+        worker.addOutgoingMsg(conn, appendReq);
     }
 
     public void sendAppendResp(long index, long term, boolean result)
@@ -330,7 +378,7 @@ public class Node implements MsgHandler
     @Override
     public void handleClientReq(ClientReq msg)
     {
-        cluster.handleClientRequest(this, msg);
+        cluster.handleClientReq(this, msg);
     }
 
     @Override

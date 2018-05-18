@@ -298,9 +298,9 @@ public class MappedStore
 
         Entry entry = entries.get(pos);
         int begin = entry.getOffset();
-        int end   = buf.position() - 1;
+        int end   = buf.position();
 
-        return buf.slice(begin, end);
+        return buf.slice(begin, end - begin);
     }
 
 

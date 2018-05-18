@@ -10,6 +10,7 @@ public class FutureRequest extends CompletableFuture<ByteBuffer>
     ClientReq request;
     private long index;
     private ByteBuffer response;
+    public long ts;
 
     public FutureRequest(ClientReq request, long index)
     {

@@ -16,7 +16,7 @@ public class SelectorPoll extends Poll
 {
     private final Selector selector;
     private final AtomicBoolean awake;
-    private final AtomicBoolean willWakeUp;
+    private final AtomicBoolean wakenUp;
 
 
     public SelectorPoll(Worker worker)
@@ -30,9 +30,9 @@ public class SelectorPoll extends Poll
             throw new RuntimeException(e);
         }
 
-        this.awake      = new AtomicBoolean(false);
-        this.willWakeUp = new AtomicBoolean(false);
-        timestamp  = Util.time();
+        this.awake   = new AtomicBoolean(false);
+        this.wakenUp = new AtomicBoolean(false);
+        timestamp    = Util.time();
     }
 
     @Override
@@ -51,7 +51,7 @@ public class SelectorPoll extends Poll
     {
         try {
             queue.put(event);
-            if (!awake.get() && !willWakeUp.getAndSet(true)) {
+            if (!awake.get() && wakenUp.compareAndSet(false, true)) {
                 selector.wakeup();
             }
         }
@@ -106,20 +106,18 @@ public class SelectorPoll extends Poll
     @Override
     public void loop() throws IOException
     {
-        long timeout = 0;
+        long timeout = 1;
 
         while (!stop) {
-
-            timeout = timer.execute(timestamp);
-            willWakeUp.set(false);
             awake.set(false);
+            processEvents();
+            wakenUp.set(false);
             selector.select(timeout);
             awake.set(true);
-            willWakeUp.set(true);
             timestamp = Util.time();
-
             processSelect(selector.selectedKeys());
             processEvents();
+            timeout = timer.execute(timestamp);
         }
     }
 }

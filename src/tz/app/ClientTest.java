@@ -10,17 +10,29 @@ import tz.core.client.FutureRequest;
 import tz.core.msg.Encoder;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.sql.Time;
+import java.util.Arrays;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class ClientTest implements ClientListener
 {
     private long before;
     private long after;
-    private static String str = "21321312321";
+    private long latency;
+    private long latency0;
+    private long latency1;
+    private long latency2;
+    private long latency3;
+    private static String str = "";
 
     static  {
-        for (int i = 0 ; i < 1000; i++) {
-            str += "s";
+        for (int i = 0 ; i < 1024; i++) {
+            str += "1";
         }
     }
 
@@ -67,22 +79,23 @@ public class ClientTest implements ClientListener
     {
         client = new Client("cluster0", name, "group0", this, "ERROR");
         client.addTransport(new TransportRecord("tcp", "127.0.0.1", 9090));
-
-
         try {
-            client.connect(10000);
-            Thread.sleep(8000);
-            before = System.currentTimeMillis();
-            for (int i = 0; i < 1000000; i++) {
-                String str = UUID.randomUUID().toString();
-                FutureRequest put = client.sendRequest(createPut("" + i % 1000, str));
-                put.thenAccept(s ->  {
-                    requestCompleted(put.getIndex(), put.getResponse());
-                });
+            client.connect(20000);
+            before = System.nanoTime();
+            for (int i = 0; i < 20000; i++) {
+                //String str = UUID.randomUUID().toString();
+                ByteBuffer bb = createPut("" + i % 1000, str);
+                long ts = System.nanoTime();
+                FutureRequest put = client.sendRequest(bb);
 
-                FutureRequest get = client.sendRequest(createGet("" + i % 1000));
-                get.thenAccept(s ->  {
-                    requestCompleted(get.getIndex(), get.getResponse());
+                put.ts = ts;
+                put.thenAccept(s ->  {
+                    //requestCompleted(put.getSequence(), put.getResponse());
+                    //System.out.println(name + " " + put.getSequence() + " Latency : " + TimeUnit.MICROSECONDS.convert((System.nanoTime() - put.ts), TimeUnit.NANOSECONDS));
+
+                    if (put.getSequence() == 19999) {
+                        System.out.println(name + " " + put.getSequence() + " Total : " + TimeUnit.MICROSECONDS.convert((System.nanoTime() - before), TimeUnit.NANOSECONDS));
+                    }
                 });
             }
         }
@@ -95,7 +108,18 @@ public class ClientTest implements ClientListener
     public static void main(String[] args)
     {
         try {
-            new ClientTest().test(args[0]);
+
+            new Thread(() -> {
+                try {
+                    new ClientTest().test(args[0]);
+                }
+                catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+
+
+            Thread.sleep(1000000000);
         }
         catch (InterruptedException e) {
             e.printStackTrace();
@@ -115,16 +139,6 @@ public class ClientTest implements ClientListener
         //System.out.println("Request completed for index : "+ index +
           //                                  " with size : " + buf.remaining());
         Buffer buffer = new Buffer(buf);
-
-        if (index == 1) {
-            after = System.currentTimeMillis();
-        }
-
-        if (index == 1999999) {
-            System.out.println("Before in " + (System.currentTimeMillis() - before));
-            System.out.println("After in  " + (System.currentTimeMillis() - after));
-        }
-
        // System.out.println("Index : " + index + "Read : " + buffer.getString());
 
     }

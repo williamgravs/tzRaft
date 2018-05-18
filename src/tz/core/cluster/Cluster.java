@@ -39,7 +39,7 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
         LEADER
     }
 
-    private static final int ELECTION_TIMEOUT = 2000;
+    private static final int ELECTION_TIMEOUT = 200000;
 
     private final IOWorker ioWorker;
     private final Callbacks callbacks;
@@ -56,6 +56,7 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
     private final Map<Long, Request> requests;
     private final List<Node> grantedVotes;
     private final List<Node> preVotes;
+    private long preVoteTerm;
 
     private final List<Node> readyNodes;
 
@@ -91,7 +92,7 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
 
         nodeRecord     = new NodeRecord(nodeName, "");
         clusterRecord  = new ClusterRecord(clusterName);
-        path           = Paths.get(workingDir + "/" + clusterName + "/");
+        path           = Paths.get(workingDir + "/" + clusterName + "/" + nodeName + "/");
         own            = new Node(this, null, nodeRecord, nodeRecord, Node.Type.PEER);
 
         Files.createDirectories(path);
@@ -106,15 +107,17 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
         activeNodes    = new HashMap<>();
         clients        = new HashMap<>();
         grantedVotes   = new ArrayList<>();
-        preVotes       = new ArrayList<>();
         requests       = new HashMap<>();
         readyNodes     = new ArrayList<>();
+        preVotes       = new ArrayList<>();
+        preVoteTerm    = -1;
         electionTimer  = new ElectionTimer(this, true,
-                                           new Random().nextInt(150) + 500,
+                                           new Random().nextInt(150) + 2500,
                                            timestamp() + 500);
-
         addTimer(electionTimer);
         state.setCluster(this);
+
+        nodes.put(own.getName(), own);
 
         open(clusterName, nodeName);
     }
@@ -182,14 +185,12 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
             configBuf = new Buffer(ByteBuffer.allocateDirect((int) channel.size()));
         }
 
-
         int read = 0;
         configBuf.clear();
         while (configBuf.hasRemaining() && read != -1) {
             read = channel.read(configBuf.backend());
         }
         configBuf.flip();
-
 
         final int len = configBuf.remaining() - Encoder.longLen(0);
         CRC32 crc32 = new CRC32();
@@ -288,8 +289,15 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
             ioWorker.addEndpoint(record);
         }
 
-        for (TransportRecord record : nodeRecord.secureTransports) {
-            ioWorker.addEndpoint(record);
+        for (NodeRecord record : clusterRecord.peers) {
+            if (!record.isClient() && !record.equals(nodeRecord)) {
+                Node node = new Node(this, null, nodeRecord, record, Node.Type.PEER);
+                nodes.put(node.getName(), node);
+
+                if (node.getName().compareTo(nodeRecord.name) > 0) {
+                    node.reconnect();
+                }
+            }
         }
 
 
@@ -349,35 +357,103 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
     }
 
     @Override
-    public void sendConnectionUpdate(Connection conn, boolean active)
+    public void sendConnectionUpdate(Connection conn, Connection.Status status)
     {
-        Node node = (Node) conn.getAttachment();
-        if (node == null) {
-            return;
-        }
+        addEvent(new ConnectionUpdate(this, conn, status));
+    }
 
-        if (!active) {
-            if (node.isClient()) {
-                clients.remove(node.getName());
+    public void handleReconnectTimer(Node node)
+    {
+        node.connect();
+    }
+
+    @Override
+    public void handleConnectionUpdate(Connection conn, Connection.Status status)
+    {
+        Node node;
+
+        switch (status)
+        {
+            case INCOMING:
+                break;
+            case OUTGOING_SUCCEED:
+                node = (Node) conn.getAttachment();
+                node.setConnected();
+                node.sendConnectReq(clusterRecord.getName(),
+                                    nodeRecord.getName(), false);
+                activeNodes.put(node.getName(), node);
+                break;
+
+            case OUTGOING_FAILED:
+                node = (Node) conn.getAttachment();
+                node.reconnect();
+                break;
+
+            case DISCONNECTED:
+                if (!conn.hasAttachment()) {
+                    break;
+                }
+
+                node = (Node) conn.getAttachment();
+                if (node.isClient()) {
+                    clients.remove(node.getName());
+                }
+                else if (node.isPeer()) {
+                    activeNodes.remove(node.getName());
+                    //node.reconnect();
+                }
+                break;
+        }
+    }
+
+    @Override
+    public void sendIncomingMsg(Connection conn, Msg msg)
+    {
+        addEvent(new IncomingMsg(this, conn, msg));
+    }
+
+    @Override
+    public void handleIncomingMsg(Connection conn, Msg msg)
+    {
+        Node node = null;
+        try {
+            Object attachment = conn.getAttachment();
+            if (attachment == null) {
+                //This must be ConnectReq
+                handleConnectReqMsg(conn, (ConnectReq) msg);
+                return;
             }
+
+            node = (Node) conn.getAttachment();
+            node.addIncomingMsg(msg);
+            readyNodes.add(node);
+        }
+        catch (Exception e) {
+            logError(e);
+            ioWorker.cancelConnection(conn);
         }
     }
 
-    @Override
-    public void handleConnectionUpdate(Connection conn, boolean active)
+    public void handleRequestCompleted(Node node, Entry entry,
+                                       Response response)
     {
-        Node node = (Node) conn.getAttachment();
-        node.disconnect();
+        node.sendClientResp(entry.getSequence(), response.success, response.data);
     }
 
-    @Override
-    public void sendIncomingConn(Connection conn, ConnectReq req)
+    public void handleClientReq(Node node, ClientReq req)
     {
-        addEvent(new IncomingConn(this, conn, req));
+        Entry entry = new Entry(req.getStateId(), node.getId(),
+                                req.getSequence(), req.getAcknowledge(),
+                                currentTerm,  req.getData());
+        store.add(entry);
+        RequestCompleted comp = new RequestCompleted(node);
+        comp.ioTs = req.ioTs;
+        comp.clusterTs = req.clusterTs;
+
+        requests.put(entry.getIndex(), comp);
     }
 
-    @Override
-    public void handleIncomingConn(Connection conn, ConnectReq req)
+    public void handleConnectReqMsg(Connection conn, ConnectReq req)
     {
         if (req.isClient()) {
             if (role != Role.LEADER && !termStarted) {
@@ -393,7 +469,7 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
             }
             else {
                 node = new Node(this, conn, nodeRecord,
-                                new NodeRecord(req.getName(), ""), Node.Type.CLIENT);
+                            new NodeRecord(req.getName(), ""), Node.Type.CLIENT);
                 clients.put(req.getName(), node);
             }
 
@@ -407,49 +483,16 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
                 return;
             }
 
-
             Node node = nodes.get(req.getName());
-            if (node != null) {
+            if (node != null && node.isDisconnected()) {
                 node.setConnection(conn);
                 activeNodes.put(req.getName(), node);
+                node.sendConnectResp(true, clusterRecord, 0, 0);
             }
             else {
                 ioWorker.cancelConnection(conn);
             }
         }
-    }
-
-    @Override
-    public void sendIncomingMsg(Connection conn, Deque<Msg> msgs)
-    {
-        addEvent(new IncomingMsg(this, conn, msgs));
-    }
-
-    @Override
-    public void handleIncomingMsg(Connection conn, Deque<Msg> msgs)
-    {
-        Node node = (Node) conn.getAttachment();
-        node.addIncomingMsgs(msgs);
-
-        readyNodes.add(node);
-    }
-
-    public void handleRequestCompleted(Node node, Entry entry,
-                                       Response response)
-    {
-        //logInfo("Sending client sequence : " + entry.getSequence());
-        node.sendClientResp(entry.getSequence(),
-                            response.success, response.data);
-    }
-
-    public void handleClientRequest(Node node, ClientReq req)
-    {
-        //logInfo("Received client sequence " + req.getSequence());
-        Entry entry = new Entry(req.getStateId(), node.getId(),
-                                req.getSequence(), req.getAcknowledge(),
-                                currentTerm,  req.getData());
-        store.add(entry);
-        requests.put(entry.getIndex(), new RequestCompleted(node));
     }
 
     public void handleConnectRespMsg(Node node, ConnectResp connack)
@@ -478,7 +521,41 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
 
     public void handlePreVoteResp(Node node, PreVoteResp req)
     {
+        if (role != Role.CANDIDATE || preVoteTerm == -1) {
+            logWarn("Unexpected message from ", node, " msg : ", req);
+            return;
+        }
 
+        if (req.getTerm() > preVoteTerm) {
+            currentTerm = req.getTerm();
+            writeMeta();
+            setRole(Role.FOLLOWER);
+            preVoteTerm = -1;
+            preVotes.clear();
+            return;
+        }
+
+        if (req.isGranted()) {
+            preVotes.add(node);
+        }
+
+        if (preVotes.size() >= nodes.size() / 2 + 1) {
+            preVotes.clear();
+            preVoteTerm = -1;
+            grantedVotes.clear();
+
+            votedFor = nodeRecord.name;
+            currentTerm++;
+            writeMeta();
+
+            handleReqVoteResp(own, new ReqVoteResp(currentTerm,
+                                                   store.getLastIndex(), true));
+
+            for (Node active : activeNodes.values()) {
+                active.sendReqVoteReq(currentTerm, store.getLastIndex(),
+                                      store.getLastTerm(), false);
+            }
+        }
     }
 
     /**
@@ -511,7 +588,7 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
             result = true;
         }
 
-        node.sendRequestVoteResp(currentTerm, store.getLastIndex(), result);
+        node.sendReqVoteResp(currentTerm, store.getLastIndex(), result);
     }
 
     /**
@@ -536,16 +613,14 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
             grantedVotes.add(node);
 
             //Check if we got enough votes to become a leader
-            if (grantedVotes.size() >= activeNodes.size() / 2 + 1) {
+            if (grantedVotes.size() >= nodes.size() / 2 + 1) {
                 setRole(Role.LEADER);
                 for (Node follower : nodes.values()) {
                     follower.setNextIndex(store.getLastIndex() + 1);
                     follower.setMatchIndex(store.getLastIndex());
                 }
 
-                Entry entry = createInternalEntry(new NoOPCommand(),
-                                                  new TermStart());
-                flush();
+                createInternalEntry(new NoOPCommand(), new TermStart());
             }
         }
     }
@@ -576,7 +651,8 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
         }
 
         Entry prev = store.get(req.getPrevLogIndex());
-        if (prev == null || prev.getTerm() != req.getPrevLogTerm()) {
+        long prevTerm = prev != null ? prev.getTerm() : snapshotReader.getTerm();
+        if (prevTerm != req.getPrevLogTerm()) {
             node.sendAppendResp(store.getLastIndex(), currentTerm, false);
             return;
         }
@@ -687,6 +763,7 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
     @Override
     public void handleEvents(Deque<Event> events)
     {
+        //System.out.println("events : "+ events.size());
         try {
             Event event;
             while ((event = events.poll()) != null) {
@@ -725,8 +802,8 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
                         break;
                     case FOLLOWER:
                         //restartElectionTimer();
-                        addTimer(electionTimer);
                         removeTimer(electionTimer);
+                        addTimer(electionTimer);
                         break;
                 }
                 break;
@@ -738,18 +815,20 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
                         break;
                     case CANDIDATE:
                         //restartElectionTimer();
-                        addTimer(electionTimer);
                         removeTimer(electionTimer);
+                        addTimer(electionTimer);
                         break;
                     case FOLLOWER:
                         //restartElectionTimer();
-                        addTimer(electionTimer);
                         removeTimer(electionTimer);
+                        addTimer(electionTimer);
                         break;
                 }
         }
 
         role = newRole;
+
+        logInfo("Became : ", role);
     }
 
     public Entry createInternalEntry(Command cmd, Request request)
@@ -778,15 +857,15 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
 
     public void flush()
     {
+        for (Node node : readyNodes) {
+            node.handleMsgs();
+        }
+
+        readyNodes.clear();
+
         store.flush();
 
         if (role == Role.LEADER) {
-
-            for (Node node : readyNodes) {
-                node.handleMsgs();
-            }
-
-            readyNodes.clear();
 
             for (Node node : activeNodes.values()) {
                 long nextIndex = node.getNextIndex();
@@ -795,8 +874,9 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
                 }
 
                 Entry prev = store.get(nextIndex - 1);
+                long prevTerm = prev != null ? prev.getTerm() : snapshotReader.getTerm();
                 AppendReq req = new AppendReq(currentTerm, nextIndex - 1,
-                                              prev.getTerm(), commit);
+                                              prevTerm, commit);
 
                 req.setEntriesBuffer(store.rawEntriesFrom(nextIndex));
 
@@ -882,19 +962,21 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
         }
 
         if (activeNodes.size() >= (nodes.size() + 1) / 2) {
+            if (preVoteTerm != -1 && role == Role.CANDIDATE) {
+                logWarn("Couldnt get enough pre-votes from cluster " +
+                        "in election timeout, trying again...");
+            }
+
+            preVotes.clear();
             setRole(Role.CANDIDATE);
-            votedFor = nodeRecord.name;
-            currentTerm++;
-            writeMeta();
+            preVoteTerm = currentTerm + 1;
 
-            grantedVotes.clear();
+            handlePreVoteResp(own, new PreVoteResp(currentTerm,
+                                                   store.getLastIndex(), true));
 
-            handleReqVoteResp(own, new ReqVoteResp(currentTerm,
-                                                   store.getLastIndex(),
-                                                   true));
             for (Node node : activeNodes.values()) {
-                node.sendRequestVote(currentTerm, store.getLastIndex(),
-                                     store.getLastTerm(), false);
+                node.sendPreVoteReq(preVoteTerm,
+                                    store.getLastIndex(), store.getLastTerm());
             }
         }
     }

@@ -18,6 +18,8 @@ public class ClientResp extends Msg
     private boolean result;
     private long sequence;
     private ByteBuffer data;
+    public long ioTs;
+    public long clusterTs;
 
     /**
      * Create new ClientResp message

@@ -8,6 +8,8 @@ import tz.core.cluster.Cluster;
 import tz.core.cluster.Config;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class App
 {
@@ -16,8 +18,8 @@ public class App
     {
 
         Config config = new Config();
-        config.storeSize = 50 * 1024 * 1024;
-        config.logLevel  = "ERROR";
+        config.storeSize = 1024 * 1024 * 1024;
+        config.logLevel  = "DEBUG";
 
         Callbacks callbacks = new Callbacks()
         {
@@ -25,7 +27,7 @@ public class App
             public void onLog(Level level, long timestamp, String threadName,
                               String log, Throwable t)
             {
-                System.out.println(threadName + " : " + log );
+                System.out.println(timestamp + " " + threadName + " : " + log );
                 if (t != null) {
                     t.printStackTrace();
                 }
@@ -35,14 +37,24 @@ public class App
         MapState state = new MapState();
         Cluster cluster = null;
         try {
-            cluster = new Cluster("cluster0", "node0", "./",
-                                  config, callbacks, state);
+            Files.delete(Paths.get("./cluster0/" + args[0] + "/" + "cluster.conf"));
+            Files.delete(Paths.get("./cluster0/" + args[0] + "/" + "cluster0.snapshot"));
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            cluster = new Cluster("cluster0", args[0], "./", config, callbacks, state);
 
             if (!cluster.isStarted()) {
                 NodeRecord record = new NodeRecord("node0", "group0");
                 record.addTransport(new TransportRecord("tcp", "127.0.0.1", 9090));
 
                 cluster.addNode(record);
+
+                NodeRecord record1 = new NodeRecord("node1", "group0");
+                record1.addTransport(new TransportRecord("tcp", "127.0.0.1", 9091));
+                cluster.addNode(record1);
             }
 
             cluster.join();

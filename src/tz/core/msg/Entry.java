@@ -54,7 +54,7 @@ public class Entry
         this.index       = 0;
 
         int headerLen = Encoder.varIntLen(stateId)  +
-                        Encoder.varLongLen(clientId) +
+                        Encoder.varIntLen(clientId) +
                         Encoder.varLongLen(sequence) +
                         Encoder.varLongLen(acknowledge) +
                         Encoder.varLongLen(term);
@@ -64,7 +64,7 @@ public class Entry
         header = new Buffer(total);
         header.putVarInt(headerLen + data.remaining());
         header.putVarInt(stateId);
-        header.putVarLong(clientId);
+        header.putVarInt(clientId);
         header.putVarLong(sequence);
         header.putVarLong(acknowledge);
         header.putVarLong(term);

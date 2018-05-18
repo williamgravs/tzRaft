@@ -12,6 +12,8 @@ public class Response
     public long sequence;
     public boolean success;
     public ByteBuffer data;
+    public long ioTs;
+    public long clusterTs;
 
     public Response(long sequence, boolean success, ByteBuffer data)
     {

@@ -231,11 +231,12 @@ public class Store
     public Buffer rawEntriesFrom(long index)
     {
         Buffer out = new Buffer();
+        Buffer curr = out;
         for (MappedStore page : pages) {
             Buffer buf = page.rawEntriesFrom(index);
             if (buf != null) {
-                out.next = buf;
-                out = buf;
+                curr.next = buf;
+                curr = buf;
             }
         }
 

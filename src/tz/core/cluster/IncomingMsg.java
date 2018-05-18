@@ -8,22 +8,20 @@ import java.util.Deque;
 
 public class IncomingMsg implements Event
 {
-    private static int count;
-
     private Cluster cluster;
     private Connection conn;
-    private Deque<Msg> msgs;
+    private Msg msg;
 
-    public IncomingMsg(Cluster cluster, Connection conn, Deque<Msg> msgs)
+    public IncomingMsg(Cluster cluster, Connection conn, Msg msg)
     {
         this.cluster = cluster;
         this.conn    = conn;
-        this.msgs    = msgs;
+        this.msg     = msg;
     }
 
     @Override
     public void onEvent()
     {
-        cluster.handleIncomingMsg(conn, msgs);
+        cluster.handleIncomingMsg(conn, msg);
     }
 }

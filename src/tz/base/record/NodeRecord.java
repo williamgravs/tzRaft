@@ -38,7 +38,6 @@ public class NodeRecord
     public Role role;
 
     public List<TransportRecord> transports;
-    public List<TransportRecord> secureTransports;
 
 
     /**
@@ -51,7 +50,6 @@ public class NodeRecord
         this.name              = name;
         this.group             = group;
         this.transports        = new ArrayList<>();
-        this.secureTransports  = new ArrayList<>();
         this.role              = Role.PEER;
     }
 
@@ -61,8 +59,7 @@ public class NodeRecord
      */
     public NodeRecord(Buffer buf)
     {
-        transports       = new ArrayList<>();
-        secureTransports = new ArrayList<>();
+        transports = new ArrayList<>();
 
         decode(buf);
     }
@@ -70,13 +67,11 @@ public class NodeRecord
     public void clearTransports()
     {
         transports.clear();
-        secureTransports.clear();
     }
 
     public void inheritTransports(boolean head, NodeRecord other)
     {
         transports.addAll(head ? 0 : transports.size(), other.transports);
-        secureTransports.addAll(head ? 0 : secureTransports.size(), other.secureTransports);
     }
 
     public void setConnected(boolean connected)
@@ -135,7 +130,6 @@ public class NodeRecord
     public void clear()
     {
         transports.clear();
-        secureTransports.clear();
     }
 
     /**
@@ -152,11 +146,6 @@ public class NodeRecord
 
         len += Encoder.varIntLen(transports.size());
         for (TransportRecord transport : transports) {
-            len += transport.encodedLen();
-        }
-
-        len += Encoder.varIntLen(secureTransports.size());
-        for (TransportRecord transport : secureTransports) {
             len += transport.encodedLen();
         }
 
@@ -179,11 +168,6 @@ public class NodeRecord
         for (TransportRecord transport : transports) {
             transport.encode(buf);
         }
-
-        buf.putVarInt(secureTransports.size());
-        for (TransportRecord transport : secureTransports) {
-            transport.encode(buf);
-        }
     }
 
     /**
@@ -202,11 +186,6 @@ public class NodeRecord
         for (int i = 0; i < len; i++) {
             transports.add(new TransportRecord(buf));
         }
-
-        len = buf.getVarInt();
-        for (int i = 0; i < len; i++) {
-            secureTransports.add(new TransportRecord(buf));
-        }
     }
 
     /**
@@ -216,20 +195,8 @@ public class NodeRecord
      */
     public void addTransport(TransportRecord record)
     {
-        switch (record.protocol) {
-            case "tcp":
-                if (!transports.contains(record)) {
-                    transports.add(record);
-                }
-                break;
-            case "tls":
-                if (!secureTransports.contains(record)) {
-                    secureTransports.add(record);
-                }
-                break;
-            default:
-                throw new UnsupportedOperationException("Unknown protocol : "
-                                                            + record.protocol);
+        if (!transports.contains(record)) {
+            transports.add(record);
         }
     }
 
@@ -262,6 +229,7 @@ public class NodeRecord
     public String toString()
     {
         StringBuilder builder = new StringBuilder(1024);
+
         builder.append(" Name : ").append(name).append(",");
         builder.append(" Group :").append(group).append(",");
         builder.append(" Connected : ").append(connected).append(",");

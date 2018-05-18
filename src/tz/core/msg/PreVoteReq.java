@@ -57,9 +57,9 @@ public class PreVoteReq extends Msg
     @Override
     public void decode()
     {
-        term         = rawMsg.getVarLong();
-        lastLogIndex = rawMsg.getVarLong();
-        lastLogTerm  = rawMsg.getVarLong();
+        term         = rawMsg.getLong();
+        lastLogIndex = rawMsg.getLong();
+        lastLogTerm  = rawMsg.getLong();
 
         rawMsg.rewind();
         rawReady = true;

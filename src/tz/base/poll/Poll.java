@@ -38,7 +38,7 @@ public class Poll
     {
         this.worker = worker;
         this.events = new ArrayDeque<>();
-        this.queue  = new ArrayBlockingQueue<>(50000);
+        this.queue  = new ArrayBlockingQueue<>(100000);
         this.timer  = new Timer();
         this.stop   = false;
 

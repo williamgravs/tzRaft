@@ -10,6 +10,8 @@ import java.nio.ByteBuffer;
 public class RequestCompleted implements Request
 {
     private Node node;
+    public long ioTs;
+    public long clusterTs;
 
     public RequestCompleted(Node node)
     {

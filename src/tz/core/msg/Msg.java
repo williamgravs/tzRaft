@@ -78,6 +78,10 @@ public abstract class Msg
                 return new ClientReq(buf, len);
             case ClientResp.TYPE:
                 return new ClientResp(buf, len);
+            case PreVoteReq.TYPE:
+                return new PreVoteReq(buf, len);
+            case PreVoteResp.TYPE:
+                return new PreVoteResp(buf, len);
             default:
                 throw new UnsupportedOperationException("Unknown msg type : " + type);
         }

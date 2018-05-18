@@ -233,14 +233,7 @@ public class Client extends Worker implements SockOwner, MsgHandler
      */
     private TransportRecord getNextTransport()
     {
-        if (group.equals(remote.group)) {
-            return remote.transports.get(transportIndex++ %
-                                         remote.transports.size());
-        }
-        else {
-            return remote.secureTransports.get(transportIndex++ %
-                                               remote.secureTransports.size());
-        }
+        return remote.transports.get(transportIndex++ % remote.transports.size());
     }
 
 

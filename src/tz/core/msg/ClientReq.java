@@ -19,6 +19,8 @@ public class ClientReq extends Msg
     private long sequence;
     private long acknowledge;
     private ByteBuffer data;
+    public long ioTs;
+    public long clusterTs;
 
     /**
      * Create new ClientReq message

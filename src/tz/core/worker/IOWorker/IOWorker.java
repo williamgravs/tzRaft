@@ -8,12 +8,15 @@ import tz.base.transport.listener.Listener;
 import tz.base.transport.listener.ListenerOwner;
 import tz.base.transport.sock.Sock;
 import tz.core.Connection;
+import tz.core.msg.ClientReq;
+import tz.core.msg.ClientResp;
 import tz.core.msg.ConnectReq;
 import tz.core.msg.Msg;
 import tz.core.worker.Worker;
 
 import java.nio.channels.SelectionKey;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class IOWorker extends Worker implements ListenerOwner
 {
@@ -22,6 +25,7 @@ public class IOWorker extends Worker implements ListenerOwner
     private final List<Connection> connections;
     private final Set<Connection> readyConnections;
     private int count;
+    private int outCount;
 
     public IOWorker(IOOwner owner, Log log, String name)
     {
@@ -95,20 +99,19 @@ public class IOWorker extends Worker implements ListenerOwner
         msgs.add(msg);
         count++;
 
-
-        poll.addEvent(new OutgoingMsg(this, conn, msgs));
-    }
-
-    public void addOutgoingMsg(Connection conn, Deque<Msg> msgs)
-    {
         poll.addEvent(new OutgoingMsg(this, conn, msgs));
     }
 
     public void handleOutgoingMsg(Connection conn, Deque<Msg> msgs)
     {
+        outCount++;
+        //System.out.println("Out count : " + outCount);
         if (connections.contains(conn)) {
             conn.addMsgs(msgs);
             readyConnections.add(conn);
+        }
+        else {
+            System.out.println("Weri2d");
         }
     }
 
@@ -154,28 +157,22 @@ public class IOWorker extends Worker implements ListenerOwner
         return null;
     }
 
-    public void handleConnectionUpdate(Connection conn, boolean active)
+    public void handleConnectionUpdate(Connection conn, Connection.Status status)
     {
-        if (!active) {
+        if (status == Connection.Status.DISCONNECTED ||
+            status == Connection.Status.OUTGOING_FAILED) {
             connections.remove(conn);
             readyConnections.remove(conn);
         }
 
-        logInfo("Connection active : ", active, " to ", conn);
-        if (conn.getAttachment() != null) {
-            owner.sendConnectionUpdate(conn, active);
-        }
+        logInfo("Connection ", conn, " status ", status);
+        owner.sendConnectionUpdate(conn, status);
     }
 
 
-    public void handleIncomingMsg(Connection conn, Deque<Msg> msgs)
+    public void handleIncomingMsg(Connection conn, Msg msg)
     {
-        owner.sendIncomingMsg(conn, msgs);
-    }
-
-    public void handleIncomingConn(Connection conn, ConnectReq req)
-    {
-        owner.sendIncomingConn(conn, req);
+        owner.sendIncomingMsg(conn, msg);
     }
 
     @Override
