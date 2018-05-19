@@ -9,6 +9,7 @@ import tz.core.Connection;
 import tz.core.msg.*;
 import tz.core.worker.IOWorker.IOWorker;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -92,6 +93,12 @@ public class Node implements MsgHandler
         }
     }
 
+    @Override
+    public String toString()
+    {
+        return remote.toString();
+    }
+
     public boolean isSnapshotSendComplete()
     {
         return snapshotSender.isComplete();
@@ -107,19 +114,19 @@ public class Node implements MsgHandler
         this.snapshotSender = snapshotSender;
     }
 
-    public boolean sendInstallSnapshot(long term)
+    public boolean sendInstallSnapshotReq(long term)
     {
-        Buffer slice = snapshotSender.nextSlice();
-        if (slice == null) {
-            return true;
-        }
-
         worker.addOutgoingMsg(conn, new InstallSnapshotReq(term,
                                                            snapshotSender.getIndex(),
                                                            snapshotSender.getTerm(),
-                                                           slice,
+                                                           snapshotSender.nextSlice(),
                                                            snapshotSender.isComplete()));
         return false;
+    }
+
+    public void sendInstallSnapshotResp(long term, boolean success, boolean done)
+    {
+        worker.addOutgoingMsg(conn, new InstallSnapshotResp(term, success, done));
     }
 
     public void reconnect()
@@ -127,6 +134,7 @@ public class Node implements MsgHandler
         conn = null;
         if (remote.getName().compareTo(local.getName()) > 0) {
             reconnectTimer.timeout = cluster.timestamp() + reconnectTimer.interval;
+            cluster.removeTimer(reconnectTimer);
             cluster.addTimer(reconnectTimer);
         }
     }
@@ -288,6 +296,14 @@ public class Node implements MsgHandler
         cluster.getIoWorker().cancelConnection(conn);
         conn = null;
         connectionState = State.DISCONNECTED;
+        try {
+            snapshotSender.close();
+        }
+        catch (IOException e) {
+            cluster.logWarn(e);
+        }
+
+        cluster.logInfo("Node : ", this, " disconnected");
     }
 
     public void sendConnectReq(String clusterName, String nodeName, boolean client)

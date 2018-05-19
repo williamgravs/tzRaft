@@ -15,6 +15,12 @@ public class MapState extends State
     private Map<String, String> map = new HashMap<>();
 
     @Override
+    public void clear()
+    {
+        map.clear();
+    }
+
+    @Override
     public void saveState(OutputStream out) throws IOException
     {
         try {

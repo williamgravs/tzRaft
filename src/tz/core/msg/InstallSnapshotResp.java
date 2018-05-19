@@ -7,16 +7,16 @@ public class InstallSnapshotResp extends Msg
     public static final int TYPE = 0x01;
 
     private long term;
-    private long offset;
     private boolean success;
+    private boolean done;
 
 
 
-    public InstallSnapshotResp(long term, long offset, boolean success)
+    public InstallSnapshotResp(long term, boolean success, boolean done)
     {
         this.term    = term;
-        this.offset  = offset;
         this.success = success;
+        this.done    = done;
     }
 
     public InstallSnapshotResp(Buffer buf, int len)
@@ -28,13 +28,28 @@ public class InstallSnapshotResp extends Msg
         rawReady = true;
     }
 
+    public long getTerm()
+    {
+        return term;
+    }
+
+    public boolean isDone()
+    {
+        return done;
+    }
+
+    public boolean isSuccess()
+    {
+        return success;
+    }
+
     @Override
     public void encode()
     {
         if (!rawReady) {
             length = Encoder.byteLen(InstallSnapshotResp.TYPE) +
                      Encoder.longLen(term) +
-                     Encoder.longLen(offset) +
+                     Encoder.booleanLen(done) +
                      Encoder.booleanLen(success);
 
             if (rawMsg == null) {
@@ -45,7 +60,7 @@ public class InstallSnapshotResp extends Msg
             rawMsg.putVarInt(length);
             rawMsg.put(InstallSnapshotResp.TYPE);
             rawMsg.putLong(term);
-            rawMsg.putLong(offset);
+            rawMsg.putBoolean(done);
             rawMsg.putBoolean(success);
             rawMsg.flip();
 
@@ -59,7 +74,7 @@ public class InstallSnapshotResp extends Msg
     public void decode()
     {
         term    = rawMsg.getLong();
-        offset  = rawMsg.getLong();
+        done    = rawMsg.getBoolean();
         success = rawMsg.getBoolean();
 
         rawMsg.rewind();
@@ -79,8 +94,9 @@ public class InstallSnapshotResp extends Msg
 
         builder.append(" [[InstallSnapshotResp][")
                .append("Term : "   ).append(term)   .append(", ")
-               .append("Offset : " ).append(offset) .append(", ")
-               .append("Success : ").append(success).append("]]");
+               .append("Success : ").append(success).append(", ")
+               .append("Done : "   ).append(done)   .append("]]");
+
 
         return builder.toString();
     }

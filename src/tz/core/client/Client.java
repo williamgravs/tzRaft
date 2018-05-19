@@ -98,13 +98,12 @@ public class Client extends Worker implements SockOwner, MsgHandler
         requests       = new TreeMap<>();
         tryConnect     = new TryConnect(this, true, 2000, timestamp());
         pingTimer      = new Ping(this, true, 2000, timestamp() + 2000);
-        outTimestamp   = timestamp();
         sequence       = new AtomicLong(0);
         initialized    = new AtomicBoolean(false);
         tillConnect    = new CompletableFuture<>();
         tillDisconnect = new CompletableFuture<>();
         available      = new AtomicReference<>(new CountDownLatch(0));
-
+        outTimestamp   = timestamp();
 
         local.setClient();
 

@@ -20,7 +20,7 @@ public class App
 
         System.out.println(3/2);
         Config config = new Config();
-        config.storeSize = 6 * 1024 * 1024;
+        config.storeSize = 1024 * 1024 * 1024;
         config.logLevel  = "DEBUG";
 
         Callbacks callbacks = new Callbacks()
@@ -54,11 +54,12 @@ public class App
                 record.addTransport(new TransportRecord("tcp", "127.0.0.1", 9090));
                 cluster.addNode(record);
 
+                /*
                 NodeRecord record1 = new NodeRecord("node1", "group0");
                 record1.addTransport(new TransportRecord("tcp", "127.0.0.1", 9091));
                 cluster.addNode(record1);
 
-                /*
+
                 NodeRecord record2 = new NodeRecord("node2", "group0");
                 record2.addTransport(new TransportRecord("tcp", "127.0.0.1", 9092));
                 cluster.addNode(record2);*/

@@ -408,15 +408,12 @@ public class MappedStore
      */
     public void delete()
     {
-
-
         try {
             close();
             Files.deleteIfExists(path);
         }
         catch (IOException e) {
             cluster.logError(e);
-            throw new UncheckedIOException(e);
         }
     }
 }

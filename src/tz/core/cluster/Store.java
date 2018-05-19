@@ -59,6 +59,15 @@ public class Store
          */
         tmp.sort(Comparator.comparingLong(MappedStore::getPrevIndex));
 
+        Iterator<MappedStore> it = tmp.iterator();
+        while (it.hasNext()) {
+            MappedStore store = it.next();
+            if (store.getLastIndex() < snapshotIndex) {
+                store.delete();
+                it.remove();
+            }
+        }
+
         if (tmp.size() > 0) {
             if (tmp.get(0).getPrevIndex() > snapshotIndex) {
                 for (MappedStore store : tmp) {
@@ -68,17 +77,23 @@ public class Store
                 tmp.clear();
             }
             else {
-                long index = tmp.get(0).getPrevIndex();
-                for (int i = 1; i < tmp.size(); i++) {
-                    long prev = tmp.get(i).getPrevIndex();
+                it = tmp.iterator();
+                long index = it.next().getPrevIndex();
+                while(it.hasNext()) {
+                    MappedStore store = it.next();
+                    long prev = store.getPrevIndex();
                     if (prev != index) {
-                        for (int j = i; j < tmp.size(); j++) {
-                            tmp.get(j).delete();
+                        it.remove();
+                        while (it.hasNext()) {
+                            MappedStore invalid = it.next();
+                            invalid.delete();
+                            it.remove();
                         }
+
                         break;
                     }
 
-                    index = tmp.get(i).getLastIndex();
+                    index = store.getLastIndex();
                 }
             }
         }
@@ -110,6 +125,8 @@ public class Store
                 throw new UncheckedIOException(e);
             }
         }
+
+        pages.clear();
     }
 
     public void deleteFirst()

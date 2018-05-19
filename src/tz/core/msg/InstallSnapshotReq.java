@@ -35,6 +35,31 @@ public class InstallSnapshotReq extends Msg
         rawReady = true;
     }
 
+    public boolean isDone()
+    {
+        return done;
+    }
+
+    public long getTerm()
+    {
+        return term;
+    }
+
+    public long getLastIndex()
+    {
+        return lastIndex;
+    }
+
+    public long getLastTerm()
+    {
+        return lastTerm;
+    }
+
+    public Buffer getData()
+    {
+        return data;
+    }
+
     @Override
     public void encode()
     {

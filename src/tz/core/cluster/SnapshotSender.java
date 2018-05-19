@@ -96,7 +96,6 @@ public class SnapshotSender
         int len = Math.min(buf.remaining(), 50 * 1024 * 1024);
         if (len == 0) {
             if (!remap()) {
-                allSent = true;
                 return null;
             }
         }
@@ -104,6 +103,15 @@ public class SnapshotSender
         Buffer slice = buf.slice(buf.position(), len);
         buf.position(buf.position() + len);
         inFlight++;
+
+        try {
+            if (offset == channel.size()) {
+                allSent = true;
+            }
+        }
+        catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
 
         return slice;
     }

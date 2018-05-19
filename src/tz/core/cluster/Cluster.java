@@ -48,6 +48,7 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
     private final Store store;
     private final SnapshotReader snapshotReader;
     private final SnapshotWriter snapshotWriter;
+    private SnapshotReceiver snapshotReceiver;
     private final Path path;
 
     private final Map<String, Node> nodes;
@@ -114,6 +115,7 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
         electionTimer  = new ElectionTimer(this, true,
                                            new Random().nextInt(150) + 2500,
                                            timestamp() + 500);
+        snapshotReceiver = new SnapshotReceiver(this);
         addTimer(electionTimer);
         state.setCluster(this);
 
@@ -321,6 +323,11 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
         return path;
     }
 
+    public Path getSnapshotPath()
+    {
+        return snapshotReader.getPath();
+    }
+
 
     @Override
     public boolean isStarted()
@@ -377,17 +384,21 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
                 node.setConnected();
                 node.sendConnectReq(clusterRecord.getName(),
                                     nodeRecord.getName(), false);
+                logInfo("Connection established : ", node);
                 break;
 
             case OUTGOING_FAILED:
                 node = (Node) conn.getAttachment();
                 node.reconnect();
+                logInfo("Connection attempt failed : ", node);
                 break;
 
             case DISCONNECTED:
                 if (!conn.hasAttachment()) {
                     break;
                 }
+                node = (Node) conn.getAttachment();
+                logInfo("Disconnected : ", node);
 
                 node = (Node) conn.getAttachment();
                 if (node.isClient()) {
@@ -453,7 +464,6 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
         if (req.isClient()) {
             if (role != Role.LEADER && !termStarted) {
                 ioWorker.addOutgoingMsg(conn, new ConnectResp(false, clusterRecord, 0, 0));
-                ioWorker.cancelConnection(conn);
                 return;
             }
 
@@ -687,12 +697,52 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
 
     public void handleInstallSnapshotReq(Node node, InstallSnapshotReq req)
     {
-        System.out.println("dsad");
+        if (leader != node) {
+            throw new RaftException("Unexpected msg : " + req + " from " + node);
+        }
+
+        if (currentTerm > req.getTerm()) {
+            node.sendInstallSnapshotResp(currentTerm, false, false);
+        }
+
+        snapshotReceiver.open();
+        snapshotReceiver.write(req.getData().backend(), req.isDone());
+
+        if (req.isDone()) {
+            state.clear();
+            store.close();
+            try {
+                snapshotReader.readSnapshot();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                commit = state.getIndex();
+                store.open(commit);
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        node.sendInstallSnapshotResp(currentTerm, true, req.isDone());
     }
 
     public void handleInstallSnapshotResp(Node node, InstallSnapshotResp resp)
     {
+        if (!resp.isSuccess()) {
+            if (resp.getTerm() > currentTerm) {
+                currentTerm = resp.getTerm();
+                setRole(Role.FOLLOWER);
+            }
+        }
 
+        if (resp.isDone()) {
+            node.setMatchIndex(snapshotReader.getIndex());
+            node.setNextIndex(snapshotReader.getIndex() + 1);
+        }
     }
 
     public void handleApplied(Entry entry, Response response)
@@ -867,7 +917,12 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
     public void flush()
     {
         for (Node node : readyNodes) {
-            node.handleMsgs();
+            try {
+                node.handleMsgs();
+            }
+            catch (Exception e) {
+                node.disconnect();
+            }
         }
 
         readyNodes.clear();
@@ -891,7 +946,7 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
                     }
 
                     if (!node.isSnapshotSendComplete()) {
-                        node.sendInstallSnapshot(currentTerm);
+                        node.sendInstallSnapshotReq(currentTerm);
                     }
                 }
                 else {
@@ -953,7 +1008,7 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
             matchIndex = index;
         }
 
-        if (count + 1 > (nodes.size() + 1) / 2) {
+        if (count + 1 >= (nodes.size() / 2) + 1) {
             if (commit >= index) {
                 return;
             }

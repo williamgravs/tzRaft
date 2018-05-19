@@ -107,6 +107,8 @@ public abstract class State implements CommandExecutor
         this.index = index;
     }
 
+    public abstract void clear();
+
     /**
      * Save(serialize) this state to outputstream)
      * @param out          outputstream

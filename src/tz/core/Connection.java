@@ -288,31 +288,37 @@ public class Connection implements SockOwner, MsgHandler
     @Override
     public void handleReadEvent(Sock sock)
     {
-        boolean willDisconnect = false;
+        try {
+            boolean willDisconnect = false;
 
-        int read = 1;
-        while (read > 0) {
-            read = sock.recv();
-            if (read == -1) {
-                willDisconnect = true;
-            }
-
-            ByteBuffer buf = sock.getRecvBuf();
-            buf.flip();
-
-            while (buf.hasRemaining()) {
-                Msg msg = decode(buf);
-                if (msg == null) {
-                    break;
+            int read = 1;
+            while (read > 0) {
+                read = sock.recv();
+                if (read == -1) {
+                    willDisconnect = true;
                 }
 
-                worker.logInfo("Msg recv : ", msg, " from ", this);
-                worker.handleIncomingMsg(this, msg);
-            }
+                ByteBuffer buf = sock.getRecvBuf();
+                buf.flip();
 
-            if (willDisconnect) {
-                disconnect(true);
+                while (buf.hasRemaining()) {
+                    Msg msg = decode(buf);
+                    if (msg == null) {
+                        break;
+                    }
+
+                    worker.logInfo("Msg recv : ", msg, " from ", this);
+                    worker.handleIncomingMsg(this, msg);
+                }
+
+                if (willDisconnect) {
+                    disconnect(true);
+                }
             }
+        }
+        catch (Exception e) {
+            worker.logError(e);
+            disconnect(true);
         }
     }
 
