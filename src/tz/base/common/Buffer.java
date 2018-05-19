@@ -694,6 +694,14 @@ public class Buffer
         return getByteBuffer(getVarInt());
     }
 
+    public ByteBuffer getByteBufferCopy()
+    {
+        ByteBuffer copy = ByteBuffer.allocate(getVarInt());
+        copy.put(buf.array(), buf.arrayOffset(), copy.capacity());
+
+        return copy;
+    }
+
     /**
      * Tells whether there are any elements between the current position and
      * the limit.

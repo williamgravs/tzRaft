@@ -82,6 +82,10 @@ public abstract class Msg
                 return new PreVoteReq(buf, len);
             case PreVoteResp.TYPE:
                 return new PreVoteResp(buf, len);
+            case InstallSnapshotReq.TYPE:
+                return new InstallSnapshotReq(buf, len);
+            case InstallSnapshotResp.TYPE:
+                return new InstallSnapshotResp(buf, len);
             default:
                 throw new UnsupportedOperationException("Unknown msg type : " + type);
         }

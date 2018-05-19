@@ -1,5 +1,6 @@
 package tz.core.cluster;
 
+import tz.base.common.Buffer;
 import tz.base.poll.TimerEvent;
 import tz.base.record.ClusterRecord;
 import tz.base.record.NodeRecord;
@@ -61,6 +62,7 @@ public class Node implements MsgHandler
 
     private int transport;
     private final TimerEvent reconnectTimer;
+    private SnapshotSender snapshotSender;
 
     public Node(Cluster cluster, Connection conn,
                 NodeRecord local, NodeRecord remote, Type type)
@@ -82,8 +84,7 @@ public class Node implements MsgHandler
         inTimestamp     = cluster.timestamp();
         outTimestamp    = cluster.timestamp();
 
-        reconnectTimer  = new ReconnectTimer(cluster, this, false,
-                                             new Random().nextInt(2000), 0);
+        reconnectTimer  = new ReconnectTimer(cluster, this, false, 5000, 0);
 
         if (conn != null) {
             connectionState = State.CONNECTED;
@@ -91,11 +92,43 @@ public class Node implements MsgHandler
         }
     }
 
+    public boolean isSnapshotSendComplete()
+    {
+        return snapshotSender.isComplete();
+    }
+
+    public boolean hasSnapshotSender()
+    {
+        return snapshotSender != null;
+    }
+
+    public void setSnapshotSender(SnapshotSender snapshotSender)
+    {
+        this.snapshotSender = snapshotSender;
+    }
+
+    public boolean sendInstallSnapshot(long term)
+    {
+        Buffer slice = snapshotSender.nextSlice();
+        if (slice == null) {
+            return true;
+        }
+
+        worker.addOutgoingMsg(conn, new InstallSnapshotReq(term,
+                                                           snapshotSender.getIndex(),
+                                                           snapshotSender.getTerm(),
+                                                           slice,
+                                                           snapshotSender.isComplete()));
+        return false;
+    }
+
     public void reconnect()
     {
         conn = null;
-        reconnectTimer.timeout = cluster.timestamp() + reconnectTimer.interval;
-        cluster.addTimer(reconnectTimer);
+        if (remote.getName().compareTo(local.getName()) > 0) {
+            reconnectTimer.timeout = cluster.timestamp() + reconnectTimer.interval;
+            cluster.addTimer(reconnectTimer);
+        }
     }
 
     public void stopReconnectTimer()
@@ -217,19 +250,9 @@ public class Node implements MsgHandler
         return connectionState == State.CONNECTED;
     }
 
-    public boolean isConnectionValid(Connection conn)
-    {
-        return this.conn == conn;
-    }
-
     public boolean isConnectionInProgress()
     {
         return connectionState == State.CONNECTION_IN_PROGRESS;
-    }
-
-    public boolean isValid(Connection conn)
-    {
-        return this.conn == conn;
     }
 
     public void setConnected()
@@ -385,5 +408,17 @@ public class Node implements MsgHandler
     public void handleClientResp(ClientResp msg)
     {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void handleInstallSnapshotReq(InstallSnapshotReq msg)
+    {
+        cluster.handleInstallSnapshotReq(this, msg);
+    }
+
+    @Override
+    public void handleInstallSnapshotResp(InstallSnapshotResp msg)
+    {
+        cluster.handleInstallSnapshotResp(this, msg);
     }
 }

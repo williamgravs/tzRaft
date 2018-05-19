@@ -232,7 +232,7 @@ public class Connection implements SockOwner, MsgHandler
      */
     public void tryConnect()
     {
-        worker.logInfo("Trying to connect to", record.hostName, " ", record.port);
+        worker.logInfo("Trying to connect to ", record.hostName, ":", record.port);
 
         try {
             if (sock.connect(record.hostName, record.port)) {
@@ -306,7 +306,7 @@ public class Connection implements SockOwner, MsgHandler
                     break;
                 }
 
-                worker.logInfo("Recevied msg : ", msg, " from ", this);
+                worker.logInfo("Msg recv : ", msg, " from ", this);
                 worker.handleIncomingMsg(this, msg);
             }
 

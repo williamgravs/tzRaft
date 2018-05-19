@@ -50,30 +50,28 @@ public class SnapshotWriter extends OutputStream
 
     public void takeSnapshot()
     {
-
         try (FileChannel channel = FileChannel.open(tmpPath,
                                                     EnumSet.of(StandardOpenOption.WRITE,
                                                                StandardOpenOption.CREATE,
                                                                StandardOpenOption.TRUNCATE_EXISTING))){
             this.channel = channel;
 
-            channel.lock();
+            this.channel.lock();
             crc32.reset();
             buf.clear();
 
-            channel.position(Long.BYTES);
+            this.channel.position(Long.BYTES);
 
             state.save(this);
             flush(true);
 
-            channel.position(0);
             buf.clear();
             buf.putLong(crc32.getValue());
             buf.flip();
 
-            channel.position(0);
+            this.channel.position(0);
             while (buf.hasRemaining()) {
-                channel.write(buf.backend());
+                this.channel.write(buf.backend());
             }
 
             Files.deleteIfExists(path);

@@ -254,9 +254,15 @@ public class MappedStore
      * Get last log index
      * @return last log index
      */
-    public long getEndIndex()
+    public long getLastIndex()
     {
         return prevIndex + entries.size();
+    }
+
+    public long getLastTerm()
+    {
+        Entry entry = getEntry(getLastIndex());
+        return entry == null ? 0 : entry.getTerm();
     }
 
     /**

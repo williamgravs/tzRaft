@@ -166,6 +166,15 @@ public class SnapshotReader extends InputStream
                 throw new RaftException("Snapshot is inconsistent");
             }
 
+            channel.position(0);
+
+            buf.clear();
+            bytes = 0;
+            while (buf.hasRemaining() && bytes != -1) {
+                bytes = channel.read(buf.backend());
+            }
+            buf.flip();
+
             buf.position(Long.BYTES);
 
             state.load(this);
@@ -209,7 +218,7 @@ public class SnapshotReader extends InputStream
             }
         }
 
-        return buf.get();
+        return 0x000000FF & buf.get();
     }
 
     /**

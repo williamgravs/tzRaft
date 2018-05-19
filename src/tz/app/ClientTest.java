@@ -31,9 +31,12 @@ public class ClientTest implements ClientListener
     private static String str = "";
 
     static  {
-        for (int i = 0 ; i < 1024; i++) {
-            str += "1";
+        StringBuilder builder = new StringBuilder(1024 * 1024);
+        for (int i = 0 ; i < 1214; i++) {
+            builder.append("1");
         }
+
+        str = builder.toString();
     }
 
     Client client;
@@ -77,26 +80,25 @@ public class ClientTest implements ClientListener
 
     public void test(String name) throws InterruptedException
     {
-        client = new Client("cluster0", name, "group0", this, "ERROR");
+        client = new Client("cluster0", name, "group0", this, "DEBUG");
         client.addTransport(new TransportRecord("tcp", "127.0.0.1", 9090));
+        client.addTransport(new TransportRecord("tcp", "127.0.0.1", 9091));
         try {
             client.connect(20000);
             before = System.nanoTime();
-            for (int i = 0; i < 20000; i++) {
+            for (int i = 0; i < 10000; i++) {
                 //String str = UUID.randomUUID().toString();
                 ByteBuffer bb = createPut("" + i % 1000, str);
                 long ts = System.nanoTime();
                 FutureRequest put = client.sendRequest(bb);
-
                 put.ts = ts;
                 put.thenAccept(s ->  {
                     //requestCompleted(put.getSequence(), put.getResponse());
                     //System.out.println(name + " " + put.getSequence() + " Latency : " + TimeUnit.MICROSECONDS.convert((System.nanoTime() - put.ts), TimeUnit.NANOSECONDS));
-
-                    if (put.getSequence() == 19999) {
-                        System.out.println(name + " " + put.getSequence() + " Total : " + TimeUnit.MICROSECONDS.convert((System.nanoTime() - before), TimeUnit.NANOSECONDS));
-                    }
+                    System.out.println(name + " " + put.getSequence() + " Total : " + TimeUnit.MICROSECONDS.convert((System.nanoTime() - put.ts), TimeUnit.NANOSECONDS));
                 });
+
+                //Thread.sleep(5);
             }
         }
         catch (Exception e) {

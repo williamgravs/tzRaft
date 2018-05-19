@@ -109,4 +109,14 @@ public interface MsgHandler
     {
         throw new UnsupportedOperationException();
     }
+
+    default void handleInstallSnapshotReq(InstallSnapshotReq msg)
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    default void handleInstallSnapshotResp(InstallSnapshotResp msg)
+    {
+        throw new UnsupportedOperationException();
+    }
 }

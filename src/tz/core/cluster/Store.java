@@ -1,16 +1,11 @@
 package tz.core.cluster;
 
 import tz.base.common.Buffer;
-import tz.base.common.Util;
 import tz.base.exception.RaftException;
-import tz.core.cluster.command.Command;
-import tz.core.cluster.command.NoOPCommand;
 import tz.core.msg.Entry;
-import tz.core.worker.Worker;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -83,7 +78,7 @@ public class Store
                         break;
                     }
 
-                    index = tmp.get(i).getEndIndex();
+                    index = tmp.get(i).getLastIndex();
                 }
             }
         }
@@ -97,8 +92,12 @@ public class Store
         for (MappedStore page : pages) {
             cluster.logInfo("Opened page at " + page.getPath() +
                             " entries : (" + page.getPrevIndex() +
-                            " to " + page.getEndIndex() + "]");
+                            " to " + page.getLastIndex() + "]");
         }
+
+        MappedStore last = pages.getLast();
+        lastIndex = last.getLastIndex();
+        lastTerm  = last.getLastTerm();
     }
 
     public void close()
@@ -225,7 +224,7 @@ public class Store
 
     public long getFirstPageEnd()
     {
-        return pages.peekFirst().getEndIndex();
+        return pages.peekFirst().getLastIndex();
     }
 
     public Buffer rawEntriesFrom(long index)

@@ -46,19 +46,17 @@ public class Session
             throw new IOException("Snapshot is corrupt");
         }
 
-        Buffer buf   = new Buffer(b);
+        Buffer buf  = new Buffer(b);
 
         name        = buf.getString();
-        id          = buf.getVarInt();
-        sequence    = buf.getVarLong();
-        acknowledge = buf.getVarLong();
+        id          = buf.getInt();
+        sequence    = buf.getLong();
+        acknowledge = buf.getLong();
 
-        int responseCount = buf.getVarInt();
+        int responseCount = buf.getInt();
         responses = new HashMap<>(responseCount);
         for (int i = 0; i < responseCount; i++) {
-            Response response = new Response(buf.getVarLong(),
-                                             buf.getBoolean(),
-                                             buf.getByteBuffer());
+            Response response = new Response(buf);
             responses.put(response.sequence, response);
         }
     }
@@ -117,10 +115,10 @@ public class Session
     public int encodedLen()
     {
         int len = Encoder.stringLen(name) +
-                  Encoder.varIntLen(id) +
-                  Encoder.varLongLen(sequence) +
-                  Encoder.varLongLen(acknowledge) +
-                  Encoder.varIntLen(responses.size());
+                  Encoder.intLen(id) +
+                  Encoder.longLen(sequence) +
+                  Encoder.longLen(acknowledge) +
+                  Encoder.intLen(responses.size());
 
         for (Response response : responses.values()) {
             len += response.encodedLen();
@@ -133,10 +131,10 @@ public class Session
     public void encode(OutputStream out) throws IOException
     {
         int len = Encoder.stringLen(name) +
-                  Encoder.varIntLen(id) +
-                  Encoder.varLongLen(sequence) +
-                  Encoder.varLongLen(acknowledge) +
-                  Encoder.varIntLen(responses.size());
+                  Encoder.intLen(id) +
+                  Encoder.longLen(sequence) +
+                  Encoder.longLen(acknowledge) +
+                  Encoder.intLen(responses.size());
 
         int total = len;
         for (Response response : responses.values()) {
@@ -148,10 +146,10 @@ public class Session
 
         buf.putInt(total);
         buf.putString(name);
-        buf.putVarInt(id);
-        buf.putVarLong(sequence);
-        buf.putVarLong(acknowledge);
-        buf.putVarInt(responses.size());
+        buf.putInt(id);
+        buf.putLong(sequence);
+        buf.putLong(acknowledge);
+        buf.putInt(responses.size());
         buf.flip();
 
         out.write(buf.array());

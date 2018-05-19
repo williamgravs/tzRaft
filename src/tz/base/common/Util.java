@@ -49,7 +49,7 @@ public class Util
         long ch7 = in.read();
         long ch8 = in.read();
 
-        if ((ch1 | ch2 | ch3 | ch4 | ch5 | ch6 | ch7 | ch8) < 0) {
+        if ((ch1 | ch2 | ch3 | ch4 | ch5 | ch6  | ch7 | ch8) < 0) {
             throw new EOFException();
         }
 

@@ -253,7 +253,7 @@ public class Client extends Worker implements SockOwner, MsgHandler
             connectionState = ConnectionState.CONNECT_IN_PROGRESS;
 
             TransportRecord record = getNextTransport();
-            logInfo("trying to connect to", record.hostName, ":", record.port);
+            logInfo("Trying to connect to ", record.hostName, ":", record.port);
 
             if (sock.connect(record.hostName, record.port)) {
                 handleConnectEvent(sock);

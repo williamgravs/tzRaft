@@ -171,8 +171,8 @@ public abstract class State implements CommandExecutor
         buf.putLong(index);
         record.encode(buf);
         buf.putInt(sessions.size());
-
         buf.flip();
+
         out.write(buf.array());
 
         for (Session session : sessions.values()) {

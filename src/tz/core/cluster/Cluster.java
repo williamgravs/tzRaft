@@ -39,7 +39,7 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
         LEADER
     }
 
-    private static final int ELECTION_TIMEOUT = 200000;
+    private static final int ELECTION_TIMEOUT = 2000000;
 
     private final IOWorker ioWorker;
     private final Callbacks callbacks;
@@ -293,13 +293,9 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
             if (!record.isClient() && !record.equals(nodeRecord)) {
                 Node node = new Node(this, null, nodeRecord, record, Node.Type.PEER);
                 nodes.put(node.getName(), node);
-
-                if (node.getName().compareTo(nodeRecord.name) > 0) {
-                    node.reconnect();
-                }
+                node.reconnect();
             }
         }
-
 
         ioWorker.start();
         start();
@@ -381,7 +377,6 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
                 node.setConnected();
                 node.sendConnectReq(clusterRecord.getName(),
                                     nodeRecord.getName(), false);
-                activeNodes.put(node.getName(), node);
                 break;
 
             case OUTGOING_FAILED:
@@ -400,7 +395,7 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
                 }
                 else if (node.isPeer()) {
                     activeNodes.remove(node.getName());
-                    //node.reconnect();
+                    node.reconnect();
                 }
                 break;
         }
@@ -676,14 +671,28 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
      */
     public void handleAppendResp(Node node, AppendResp resp)
     {
+        node.setMatchIndex(resp.getIndex());
+        node.setNextIndex(resp.getIndex() + 1);
         if (resp.isSuccess()) {
-            node.setMatchIndex(resp.getIndex());
             checkCommit(resp.getIndex());
         }
         else {
-            node.disconnect();
-            activeNodes.remove(node.getName());
+            if (resp.getTerm() > currentTerm) {
+                currentTerm = resp.getTerm();
+                writeMeta();
+                setRole(Role.FOLLOWER);
+            }
         }
+    }
+
+    public void handleInstallSnapshotReq(Node node, InstallSnapshotReq req)
+    {
+        System.out.println("dsad");
+    }
+
+    public void handleInstallSnapshotResp(Node node, InstallSnapshotResp resp)
+    {
+
     }
 
     public void handleApplied(Entry entry, Response response)
@@ -873,15 +882,31 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
                     continue;
                 }
 
-                Entry prev = store.get(nextIndex - 1);
-                long prevTerm = prev != null ? prev.getTerm() : snapshotReader.getTerm();
-                AppendReq req = new AppendReq(currentTerm, nextIndex - 1,
-                                              prevTerm, commit);
+                if (nextIndex <= snapshotReader.getIndex()) {
+                    if (!node.hasSnapshotSender()) {
+                        node.setSnapshotSender(new SnapshotSender(this,
+                                                                  snapshotReader.getPath(),
+                                                                  snapshotReader.getTerm(),
+                                                                  snapshotReader.getIndex()));
+                    }
 
-                req.setEntriesBuffer(store.rawEntriesFrom(nextIndex));
+                    if (!node.isSnapshotSendComplete()) {
+                        node.sendInstallSnapshot(currentTerm);
+                    }
+                }
+                else {
 
-                node.setNextIndex(store.getLastIndex() + 1);
-                node.sendAppendReq(req);
+                    Entry prev = store.get(nextIndex - 1);
+                    long prevTerm = prev != null ? prev.getTerm() :
+                                                   snapshotReader.getTerm();
+                    AppendReq req = new AppendReq(currentTerm, nextIndex - 1,
+                                                  prevTerm, commit);
+
+                    req.setEntriesBuffer(store.rawEntriesFrom(nextIndex));
+
+                    node.setNextIndex(store.getLastIndex() + 1);
+                    node.sendAppendReq(req);
+                }
             }
 
             if (own.getNextIndex() <= store.getLastIndex()) {
@@ -928,7 +953,7 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
             matchIndex = index;
         }
 
-        if (count + 1 >= (nodes.size() + 1) / 2) {
+        if (count + 1 > (nodes.size() + 1) / 2) {
             if (commit >= index) {
                 return;
             }
@@ -961,7 +986,7 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
             }
         }
 
-        if (activeNodes.size() >= (nodes.size() + 1) / 2) {
+        if (activeNodes.size() + 1 >= (nodes.size() / 2) + 1) {
             if (preVoteTerm != -1 && role == Role.CANDIDATE) {
                 logWarn("Couldnt get enough pre-votes from cluster " +
                         "in election timeout, trying again...");

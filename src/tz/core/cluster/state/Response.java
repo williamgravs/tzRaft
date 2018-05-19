@@ -12,14 +12,19 @@ public class Response
     public long sequence;
     public boolean success;
     public ByteBuffer data;
-    public long ioTs;
-    public long clusterTs;
 
     public Response(long sequence, boolean success, ByteBuffer data)
     {
         this.sequence = sequence;
         this.success  = success;
         this.data     = data;
+    }
+
+    public Response(Buffer buffer)
+    {
+        sequence = buffer.getLong();
+        success  = buffer.getBoolean();
+        data     = buffer.getByteBufferCopy();
     }
 
     public boolean isSuccess()
@@ -34,22 +39,22 @@ public class Response
 
     public int encodedLen()
     {
-        return Encoder.varLongLen(sequence) +
-               Encoder.booleanLen(success) + Encoder.byteBufferLen(data);
+        return Encoder.longLen(sequence) + Encoder.booleanLen(success)
+                                         + Encoder.byteBufferLen(data);
     }
 
     public void encodeTo(OutputStream out) throws IOException
     {
-        Buffer buf = new Buffer(Encoder.varLongLen(sequence) +
+        Buffer buf = new Buffer(Encoder.longLen(sequence) +
                                 Encoder.booleanLen(success) +
                                 Encoder.varIntLen(data.remaining()));
 
-        buf.putVarLong(sequence);
+        buf.putLong(sequence);
         buf.putBoolean(success);
         buf.putVarInt(data.remaining());
         buf.flip();
 
-        out.write(buf.array());
-        out.write(data.array());
+        out.write(buf.array(), buf.getOffset(), buf.remaining());
+        out.write(data.array(), data.arrayOffset(), data.remaining());
     }
 }
