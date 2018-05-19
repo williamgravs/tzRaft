@@ -452,11 +452,7 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
                                 req.getSequence(), req.getAcknowledge(),
                                 currentTerm,  req.getData());
         store.add(entry);
-        RequestCompleted comp = new RequestCompleted(node);
-        comp.ioTs = req.ioTs;
-        comp.clusterTs = req.clusterTs;
-
-        requests.put(entry.getIndex(), comp);
+        requests.put(entry.getIndex(), new RequestCompleted(node));
     }
 
     public void handleConnectReqMsg(Connection conn, ConnectReq req)
