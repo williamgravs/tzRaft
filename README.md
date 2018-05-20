@@ -21,3 +21,222 @@ in a simple and performant manner.
 You are either peer or client. Clients are only required when you want to send commands to a remote cluster. There is nothing static in the code so you can make a single node part of multiple clusters. Sharding/distributed clusters can be built this way.
 
 ![Sharding](docs/image/shard.jpg?raw=true "Sharding")
+
+
+**Code Example:**
+**Peer:**
+```Java
+import tz.base.log.Level;
+import tz.base.record.NodeRecord;
+import tz.base.record.TransportRecord;
+import tz.core.cluster.Callbacks;
+import tz.core.cluster.Cluster;
+import tz.core.cluster.Config;
+
+import java.io.*;
+
+public class App
+{
+    public static void main(String[] args)
+    {
+        //Config paramaters for cluster
+        Config config = new Config();
+        config.storeSize = 1024 * 1024 * 1024;
+        config.logLevel  = "ERROR";
+
+        //Callbacks including log, config change, current cluster info
+        Callbacks callbacks = new Callbacks()
+        {
+            @Override
+            public void onLog(Level level, long timestamp, String threadName,
+                              String log, Throwable t)
+            {
+                System.out.println(timestamp + " " + threadName + " : " + log );
+                if (t != null) {
+                    t.printStackTrace();
+                }
+            }
+        };
+
+        try {
+            //This is your state machine, must extend tz.core.cluster State
+            MapState state = new MapState();
+            
+            Cluster cluster = new Cluster("cluster0", "node0", "./workingDir/", 
+                                           config, callbacks, state);
+            //If cluster is already started, you must first connect to cluster and
+            //pull the latest config
+            if (!cluster.isStarted()) {
+                NodeRecord record = new NodeRecord("node0", "group0");
+                record.addTransport(new TransportRecord("tcp", "127.0.0.1", 9090));
+                cluster.addNode(record);
+
+                NodeRecord record1 = new NodeRecord("node1", "group0");
+                record1.addTransport(new TransportRecord("tcp", "127.0.0.1", 9091));
+                cluster.addNode(record1);
+
+                NodeRecord record2 = new NodeRecord("node2", "group0");
+                record2.addTransport(new TransportRecord("tcp", "127.0.0.1", 9092));
+                cluster.addNode(record2);
+            }
+
+            cluster.join();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+  ```
+  
+  **State in peer :**
+  ```Java
+import tz.base.common.Buffer;
+import tz.core.cluster.state.State;
+import tz.core.msg.Encoder;
+
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
+
+public class MapState extends State
+{
+    private Map<String, String> map = new HashMap<>();
+
+    @Override
+    public void clear()
+    {
+        map.clear();
+    }
+
+    @Override
+    public void saveState(OutputStream out) throws IOException
+    {
+        try {
+            ObjectOutputStream obj = new ObjectOutputStream(out);
+            obj.writeObject(map);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void loadState(InputStream in) throws IOException
+    {
+        try {
+            ObjectInputStream obj = new ObjectInputStream(in);
+            map = (Map<String, String>) obj.readObject();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public ByteBuffer onCommand(long index, ByteBuffer buf)
+    {
+        String ret = null;
+        Buffer buffer = new Buffer(buf);
+        boolean put = buffer.getBoolean();
+        if (put) {
+            ret = map.put(buffer.getString(), buffer.getString());
+        }
+        else {
+            ret = map.get(buffer.getString());
+        }
+
+        buffer = new Buffer(Encoder.stringLen(ret));
+        buffer.putString(ret);
+        buffer.flip();
+
+        return buffer.backend();
+    }
+  ```
+  
+  **Client:**
+  ```Java
+import tz.base.common.Buffer;
+import tz.base.log.Level;
+import tz.base.record.ClusterRecord;
+import tz.base.record.TransportRecord;
+import tz.core.client.Client;
+import tz.core.client.ClientListener;
+import tz.core.client.FutureRequest;
+import tz.core.msg.Encoder;
+
+import java.nio.ByteBuffer;
+
+public class ClientTest implements ClientListener
+{
+    public ByteBuffer createPut(String key, String value)
+    {
+        Buffer buffer = new Buffer(Encoder.booleanLen(true) +
+                                   Encoder.stringLen(key) +
+                                   Encoder.stringLen(value));
+
+        buffer.putBoolean(true);
+        buffer.putString(key);
+        buffer.putString(value);
+        buffer.flip();
+
+        return buffer.backend();
+    }
+
+    public ByteBuffer createGet(String key)
+    {
+        Buffer buffer = new Buffer(Encoder.booleanLen(false) +
+                                   Encoder.stringLen(key));
+
+        buffer.putBoolean(false);
+        buffer.putString(key);
+        buffer.flip();
+
+        return buffer.backend();
+    }
+
+
+    public void test(String name) throws InterruptedException
+    {
+        Client client = new Client("cluster0", name, "group0", this, "ERROR");
+        client.addTransport(new TransportRecord("tcp", "127.0.0.1", 9090));
+        client.addTransport(new TransportRecord("tcp", "127.0.0.1", 9091));
+        
+        try {
+            client.connect(10000);
+
+            for (int i = 0; i < 10000; i++) {
+                ByteBuffer bb = createPut(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+                FutureRequest put = client.sendRequest(bb);
+                put.thenAccept(s ->  {
+                    System.out.println("Message sent with sequence : " + put.getSequence());
+                });
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void configChange(ClusterRecord record)
+    {
+        System.out.println("Current config " + record);
+    }
+    
+    @Override
+    public void onLog(Level level, long timestamp, String threadName,
+                      String log, Throwable t)
+    {
+        System.out.println("[" + timestamp + "] [" + threadName + "] : " + log );
+        if (t != null) {
+            t.printStackTrace();
+        }
+    }
+}
+
+  ```
