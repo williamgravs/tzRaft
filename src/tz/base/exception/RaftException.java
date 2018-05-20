@@ -8,8 +8,7 @@ public class RaftException extends RuntimeException
     /**
      * Create exception with log info
      *
-     * @param   log
-     *          Log line to be held in this exception
+     * @param  log Log line to be held in this exception
      */
     public RaftException(String log)
     {
@@ -19,9 +18,9 @@ public class RaftException extends RuntimeException
     /**
      * Create Raft Exception
      *
-     * @param   e
-     *          Any exception to be held in this exception object. This is
-     *          used mostly change checked exceptions to unchecked ones.
+     * @param  e
+     *         Any exception to be held in this exception object. This is
+     *         used mostly change checked exceptions to unchecked ones.
      */
     public RaftException(Exception e)
     {

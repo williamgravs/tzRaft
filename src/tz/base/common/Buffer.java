@@ -23,8 +23,7 @@ public class Buffer
 
     /**
      * This constructor copies bytes of input src to a newly allocated ByteBuffer
-     * @param   src
-     *          Byte array to copy into this buffer
+     * @param  src  Byte array to copy into this buffer
      */
     public Buffer(byte[] src)
     {
@@ -34,8 +33,7 @@ public class Buffer
     /**
      * Allocate buffer with indicated size
      *
-     * @param   size
-     *          Size of buffer
+     * @param  size  Size of buffer
      */
     public Buffer(int size)
     {
@@ -46,8 +44,7 @@ public class Buffer
      * Shares the byte array behind but position and limit values are
      * independent
      *
-     * @param   buf
-     *          Buffer object to share byte array with new object
+     * @param  buf  Buffer object to share byte array with new object
      */
     public Buffer(Buffer buf)
     {
@@ -56,8 +53,8 @@ public class Buffer
 
     /**
      * Wrap ByteBuffer with Buffer object
-     * @param   buf
-     *          ByteBuffer backend for Buffer object
+     *
+     * @param  buf  ByteBuffer backend for Buffer object
      */
     public Buffer(ByteBuffer buf)
     {
@@ -76,8 +73,7 @@ public class Buffer
     /**
      * Set offset
      *
-     * @param   offset
-     *          Offset of this buffer
+     * @param  offset  Offset of this buffer
      */
     private void setOffset(int offset)
     {
@@ -98,8 +94,7 @@ public class Buffer
     /**
      * Set this objects buffer
      *
-     * @param   buf
-     *          ByteBuffer backend for Buffer object
+     * @param  buf  ByteBuffer backend for Buffer object
      */
     public void setBuf(ByteBuffer buf)
     {
@@ -129,11 +124,11 @@ public class Buffer
 
     /**
      * Creates a slice of this buffer from 'pos' with lenght 'len'
-     * @param   pos
-     *          Position to head of the slice
+     * @param  pos
+     *         Position to head of the slice
      *
-     * @param   len
-     *          Length of slice
+     * @param  len
+     *         Length of slice
      *
      * @return  Buffer object with position and limit data is set according
      *          to method arguments
@@ -171,7 +166,8 @@ public class Buffer
     /**
      * Get the backend of this object, mostly required to pass this buffer
      * to JDK methods
-     * @return Backend ByteBuffer of this Buffer
+     *
+     * @return  Backend ByteBuffer of this Buffer
      */
     public ByteBuffer backend()
     {
@@ -181,10 +177,10 @@ public class Buffer
     /**
      * Absolute put operation
      *
-     * @param   i
+     * @param  i
      *          Position to put byte
      *
-     * @param   value
+     * @param  value
      *          Value of the byte
      *
      * @throws  IndexOutOfBoundsException
@@ -201,7 +197,8 @@ public class Buffer
 
     /**
      * Absolute put operation
-     * @param value Value of the byte
+     * @param  value
+     *         Value of the byte
      *
      * @throws  IndexOutOfBoundsException
      *          If <tt>index</tt> is negative
@@ -238,8 +235,8 @@ public class Buffer
      * <p> Writes the given byte into this buffer at the current
      * position, and then increments the position. </p>
      *
-     * @param   b
-     *          The byte to be written
+     * @param  b
+     *         The byte to be written
      *
      * @throws  BufferOverflowException
      *          If this buffer's current position is not smaller than its limit
@@ -464,8 +461,8 @@ public class Buffer
      * <pre>
      *     dst.put(a, 0, a.length) </pre>
      *
-     * @param   buf
-     *          The source ByteBuffer
+     * @param  buf
+     *         The source ByteBuffer
      *
      *
      * @throws  BufferOverflowException
@@ -491,8 +488,8 @@ public class Buffer
      * <pre>
      *     dst.put(a, 0, a.length) </pre>
      *
-     * @param   value
-     *          The source array
+     * @param  value
+     *         The source array
      *
      *
      * @throws  BufferOverflowException
@@ -512,7 +509,7 @@ public class Buffer
      *
      * @return  The byte at the buffer's current position
      *
-     * @throws BufferUnderflowException
+     * @throws  BufferUnderflowException
      *          If the buffer's current position is not smaller than its limit
      */
     public byte get()
@@ -692,8 +689,10 @@ public class Buffer
 
     /**
      * Get buffer with length
-     * @param len length of buffer
-     * @return    Buffer as slice
+     *
+     * @param  len  length of buffer
+     *
+     * @return      Buffer as slice
      */
     public Buffer getBuffer(int len)
     {
@@ -703,8 +702,10 @@ public class Buffer
 
     /**
      * Get slice of this buffer with length of 'len'
-     * @param len len of the slice
-     * @return    new bytebuffer which shares array with this buffer
+     * @param  len
+     *         len of the slice
+     *
+     * @return   new bytebuffer which shares array with this buffer
      *
      * @throws  IllegalArgumentException
      *          If the preconditions do not hold
@@ -722,7 +723,7 @@ public class Buffer
     /**
      * Get a copy of ByteBuffer backend
      *
-     * @return Copy of current buffer
+     * @return  Copy of current buffer
      */
     public ByteBuffer getByteBufferCopy()
     {
@@ -984,8 +985,8 @@ public class Buffer
      * Get data to dest buffer from this buffer. This call might not drain
      * this buffer if dest buffer does not have enough capacity
      *
-     * @param    dest
-     *           ByteBuffer to get copy of the data
+     * @param   dest
+     *          ByteBuffer to get copy of the data
      *
      *
      * @throws  IllegalArgumentException
@@ -1053,7 +1054,7 @@ public class Buffer
      * Put data to dest buffer from this buffer. This call might not drain
      * src buffer if this buffer does not have enough capacity
      *
-     * @param    src
+     * @param   src
      *           ByteBuffer to get data
      *
      *
@@ -1072,7 +1073,7 @@ public class Buffer
      * Put data to dest buffer from this buffer. This call might not drain
      * src buffer if this buffer does not have enough capacity
      *
-     * @param    src
+     * @param   src
      *           ByteBuffer to get data
      *
      *

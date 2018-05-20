@@ -11,6 +11,7 @@ public interface LogOwner
     /**
      * Provide log instance
      * There is single log instance which holds desired log level etc.
+     *
      * @return Log instance
      */
     Log getLogger();
@@ -24,12 +25,13 @@ public interface LogOwner
      * For debugging purposes, using a unified timestamp of thread
      * is better. So, log reader may understand events occured in one loop
      *
-     * @return timestamp in millis
+     * @return Timestamp in millis
      */
     long getTimestamp();
 
     /**
      * Get current thread's name
+     *
      * @return Current thread's name
      */
     String getName();
@@ -37,6 +39,7 @@ public interface LogOwner
 
     /**
      * Create DEBUG log line
+     *
      * @param args Variable sized arguments, could be any type, they will be
      *             combined if log level is permitted
      */
@@ -47,6 +50,7 @@ public interface LogOwner
 
     /**
      * Create INFO log line
+     *
      * @param args Variable sized arguments, could be any type, they will be
      *             combined if log level is permitted
      */
@@ -57,6 +61,7 @@ public interface LogOwner
 
     /**
      * Create WARNING log line
+     *
      * @param args Variable sized arguments, could be any type, they will be
      *             combined if log level is permitted
      */
@@ -67,6 +72,7 @@ public interface LogOwner
 
     /**
      * Create ERROR log line
+     *
      * @param args Variable sized arguments, could be any type, they will be
      *             combined if log level is permitted
      */
@@ -77,6 +83,7 @@ public interface LogOwner
 
     /**
      * Create ERROR log line with a throwable object
+     *
      * @param args Variable sized arguments, could be any type, they will be
      *             combined if log level is permitted
      */
