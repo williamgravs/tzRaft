@@ -2,8 +2,11 @@
 
 Raft paper : https://raft.github.io/
 
-***Project is in early stages of development. Not ready for any kind of use cases!***
+### ***Project is in early stages of development. Not ready for any kind of use cases!***
 
+
+[![Build Status](https://travis-ci.org/tezc/tzRaft.svg?branch=master)](https://travis-ci.org/tezc/tzRaft)
+[![Coverage Status](https://coveralls.io/repos/github/tezc/tzraft/badge.svg?branch=master)](https://coveralls.io/github/tezc/tzraft?branch=master)
 
 **Goal :** Although there are some cluster communication tools/libraries/systems whether they are implementing Raft or not, yet, 
 none of them is consistent, easy to use and provide high performance. This projects aims to create a simple library to provide cluster communication/replication facility/high availability to existing/ongoing projects. I believe high availability and consistency can be done
