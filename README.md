@@ -65,22 +65,22 @@ public class App
             //This is your state machine, must extend tz.core.cluster State
             MapState state = new MapState();
             
-            Cluster cluster = new Cluster("cluster0", "node0", "./workingDir/", 
+            Cluster cluster = new Cluster("cluster0", "node1", "./workingDir/", 
                                            config, callbacks, state);
             //If cluster is already started, you must first connect to cluster and
             //pull the latest config
             if (!cluster.isStarted()) {
-                NodeRecord record = new NodeRecord("node0", "group0");
-                record.addTransport(new TransportRecord("tcp", "127.0.0.1", 9090));
-                cluster.addNode(record);
+                NodeRecord node1 = new NodeRecord("node0", "group0");
+                node1.addTransport(new TransportRecord("tcp", "127.0.0.1", 9091));
+                cluster.addNode(node1);
 
-                NodeRecord record1 = new NodeRecord("node1", "group0");
-                record1.addTransport(new TransportRecord("tcp", "127.0.0.1", 9091));
-                cluster.addNode(record1);
+                NodeRecord node2 = new NodeRecord("node1", "group0");
+                node2.addTransport(new TransportRecord("tcp", "127.0.0.1", 9092));
+                cluster.addNode(node2);
 
-                NodeRecord record2 = new NodeRecord("node2", "group0");
-                record2.addTransport(new TransportRecord("tcp", "127.0.0.1", 9092));
-                cluster.addNode(record2);
+                NodeRecord node3 = new NodeRecord("node3", "group0");
+                node3.addTransport(new TransportRecord("tcp", "127.0.0.1", 9093));
+                cluster.addNode(node3);
             }
 
             cluster.join();
@@ -147,7 +147,8 @@ public class MapState extends State
         Buffer buffer = new Buffer(buf);
         boolean put = buffer.getBoolean();
         if (put) {
-            ret = map.put(buffer.getString(), buffer.getString());
+            ret = map.put(buffer.getString(), 
+                          buffer.getString());
         }
         else {
             ret = map.get(buffer.getString());
@@ -213,10 +214,11 @@ public class ClientTest implements ClientListener
             client.connect(10000);
 
             for (int i = 0; i < 10000; i++) {
-                ByteBuffer bb = createPut(UUID.randomUUID().toString(), UUID.randomUUID().toString());
-                FutureRequest put = client.sendRequest(bb);
-                put.thenAccept(s ->  {
-                    System.out.println("Message sent with sequence : " + put.getSequence());
+                ByteBuffer bb = createPut(UUID.randomUUID().toString(),
+                                          UUID.randomUUID().toString());
+                FutureRequest req = client.sendRequest(bb);
+                req.thenAccept(s ->  {
+                    System.out.println("Request completed : " + put.getSequence());
                 });
             }
         }
