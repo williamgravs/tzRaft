@@ -17,7 +17,12 @@ public class Log
      * Log handler is supposed to be application always. So, it must implement
      * LogHandler interface
      *
-     * @param handler Log handler
+     * @param  handler
+     *         Log handler
+     *
+     * @param  logLevel
+     *         Log level
+     *
      */
     public Log(LogHandler handler, String logLevel)
     {
@@ -27,7 +32,9 @@ public class Log
 
     /**
      * Set log level. Lesser level logs will not be passed to log handler
-     * @param level new level for logging
+     *
+     * @param  level
+     *         New level for logging
      */
     public void setLevel(Level level)
     {
@@ -37,14 +44,23 @@ public class Log
     /**
      * Main logging method with variable length arguments
      *
-     * @param level     log level
-     * @param timestamp log timestamp
-     * @param owner     thread name of the callee
-     * @param t         exception logging if there is any
-     * @param args      log items to build a log line
+     * @param  level
+     *         Log level
+     *
+     * @param  timestamp
+     *         Log timestamp
+     *
+     * @param  owner
+     *         Thread name of the callee
+     *
+     * @param  t
+     *         Exception logging if there is any
+     *
+     * @param  args
+     *         Log items to build a log line
      */
-    private void log(Level level,
-                     long timestamp, String owner, Throwable t, Object ...args)
+    private void log(Level level, long timestamp,
+                     String owner, Throwable t, Object ...args)
     {
         if (logLevel.ordinal() > level.ordinal()) {
             return;
@@ -66,10 +82,17 @@ public class Log
     /**
      * Print DEBUG level log
      *
-     * @param timestamp log timestamp
-     * @param thread    caller thread's name
-     * @param t         exception loggin if there is any
-     * @param args      log items to build a log line
+     * @param  timestamp
+     *         Log timestamp
+     *
+     * @param  thread
+     *         Caller thread's name
+     *
+     * @param  t
+     *         Exception logging if there is any
+     *
+     * @param  args
+     *         Log items to build a log line
      */
     public void debug(long timestamp, String thread, Throwable t, Object ...args)
     {
@@ -79,10 +102,17 @@ public class Log
     /**
      * Print INFO level log
      *
-     * @param timestamp log timestamp
-     * @param thread    caller thread's name
-     * @param t         exception loggin if there is any
-     * @param args      log items to build a log line
+     * @param  timestamp
+     *         Log timestamp
+     *
+     * @param  thread
+     *         Caller thread's name
+     *
+     * @param  t
+     *         Exception loggin if there is any
+     *
+     * @param  args
+     *         Log items to build a log line
      */
     public void info(long timestamp, String thread, Throwable t, Object ...args)
     {
@@ -90,12 +120,19 @@ public class Log
     }
 
     /**
-     * Print WARNING level log
+     * Print INFO level log
      *
-     * @param timestamp log timestamp
-     * @param thread    caller thread's name
-     * @param t         exception loggin if there is any
-     * @param args      log items to build a log line
+     * @param  timestamp
+     *         Log timestamp
+     *
+     * @param  thread
+     *         Caller thread's name
+     *
+     * @param  t
+     *         Exception loggin if there is any
+     *
+     * @param  args
+     *         Log items to build a log line
      */
     public void warn(long timestamp, String thread, Throwable t, Object ...args)
     {
@@ -103,12 +140,19 @@ public class Log
     }
 
     /**
-     * Print ERROR level log
+     * Print INFO level log
      *
-     * @param timestamp log timestamp
-     * @param thread    caller thread's name
-     * @param t         exception loggin if there is any
-     * @param args      log items to build a log line
+     * @param  timestamp
+     *         Log timestamp
+     *
+     * @param  thread
+     *         Caller thread's name
+     *
+     * @param  t
+     *         Exception loggin if there is any
+     *
+     * @param  args
+     *         Log items to build a log line
      */
     public void error(long timestamp, String thread, Throwable t, Object ...args)
     {
