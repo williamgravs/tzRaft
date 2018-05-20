@@ -1,16 +1,13 @@
 package tz.core.cluster.state;
 
-import tz.base.common.ArrayQueue;
 import tz.base.common.Buffer;
 import tz.base.common.Util;
-import tz.base.exception.RaftException;
 import tz.core.msg.Encoder;
 import tz.core.msg.Entry;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 

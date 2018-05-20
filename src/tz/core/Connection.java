@@ -1,24 +1,20 @@
 package tz.core;
 
 import tz.base.common.Buffer;
-import tz.base.common.Util;
 import tz.base.record.TransportRecord;
 import tz.base.transport.sock.Sock;
 import tz.base.transport.sock.SockOwner;
 import tz.base.transport.sock.TcpSock;
+import tz.core.cluster.Node;
 import tz.core.msg.*;
+import tz.core.worker.IOWorker.IOOwner;
 import tz.core.worker.IOWorker.IOWorker;
 
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.util.ArrayDeque;
-import java.util.Collection;
 import java.util.Deque;
-import java.util.PrimitiveIterator;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Connection
@@ -45,7 +41,7 @@ public class Connection implements SockOwner, MsgHandler
     private final Buffer header;
     private Buffer raw;
 
-    private Object attachment;
+    private Node node;
 
     private long receivedMsgCount;
     private long sentMsgCount;
@@ -57,32 +53,32 @@ public class Connection implements SockOwner, MsgHandler
      */
     public Connection(IOWorker worker, Sock sock, TransportRecord record)
     {
-        this.worker  = worker;
-        this.sock    = sock;
-        this.record  = record;
+        this.worker   = worker;
+        this.sock     = sock;
+        this.record   = record;
 
-        header       = new Buffer(Msg.MIN_MSG_SIZE);
-        incomings    = new ArrayDeque<>();
-        outgoings    = new ArrayDeque<>();
+        header        = new Buffer(Msg.MIN_MSG_SIZE);
+        incomings     = new ArrayDeque<>();
+        outgoings     = new ArrayDeque<>();
 
         if (this.sock != null) {
             this.sock.setOwner(this);
         }
     }
 
-    public Object getAttachment()
+    public Node getNode()
     {
-        return attachment;
+        return node;
     }
 
-    public void setAttachment(Object attachment)
+    public void setNode(Node node)
     {
-        this.attachment = attachment;
+        this.node = node;
     }
 
-    public boolean hasAttachment()
+    public boolean hasNode()
     {
-        return attachment != null;
+        return node != null;
     }
 
     /**

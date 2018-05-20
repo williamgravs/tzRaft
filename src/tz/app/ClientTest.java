@@ -80,7 +80,7 @@ public class ClientTest implements ClientListener
 
     public void test(String name) throws InterruptedException
     {
-        client = new Client("cluster0", name, "group0", this, "DEBUG");
+        client = new Client("cluster0", name, "group0", this, "ERROR");
         client.addTransport(new TransportRecord("tcp", "127.0.0.1", 9090));
         client.addTransport(new TransportRecord("tcp", "127.0.0.1", 9091));
         try {
@@ -95,8 +95,15 @@ public class ClientTest implements ClientListener
                 put.thenAccept(s ->  {
                     //requestCompleted(put.getSequence(), put.getResponse());
                     //System.out.println(name + " " + put.getSequence() + " Latency : " + TimeUnit.MICROSECONDS.convert((System.nanoTime() - put.ts), TimeUnit.NANOSECONDS));
-                    System.out.println(name + " " + put.getSequence() + " Total : " + TimeUnit.MICROSECONDS.convert((System.nanoTime() - put.ts), TimeUnit.NANOSECONDS));
+                    System.out.println(name + " " + put.getSequence() + " Latency : " + TimeUnit.MICROSECONDS.convert((System.nanoTime() - put.ts), TimeUnit.NANOSECONDS));
+                    if (put.getSequence() == 9999) {
+                        System.out.println(name + " " + put.getSequence() + " Total : " + TimeUnit.MICROSECONDS.convert((System.nanoTime() - before), TimeUnit.NANOSECONDS));
+
+                    }
                 });
+
+
+
 
                 //Thread.sleep(5);
             }

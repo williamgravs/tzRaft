@@ -13,8 +13,11 @@ public class Tuple<F, S>
 
     /**
      * Create new Tuple
+     *
      * @param first  first item
+     *
      * @param second second item
+     *
      */
     public Tuple(F first, S second)
     {
@@ -24,7 +27,8 @@ public class Tuple<F, S>
 
     /**
      * Get first item
-     * @return first item
+     *
+     * @return  first item
      */
     public F getFirst()
     {
@@ -33,7 +37,10 @@ public class Tuple<F, S>
 
     /**
      * Set first item
-     * @param first new first item
+     *
+     * @param first
+     *        Set first item
+     *
      */
     public void setFirst(F first)
     {
@@ -42,7 +49,8 @@ public class Tuple<F, S>
 
     /**
      * Get second item
-     * @return second item
+     *
+     * @return  second item
      */
     public S getSecond()
     {
@@ -51,7 +59,10 @@ public class Tuple<F, S>
 
     /**
      * Set second item
-     * @param second new first item
+     *
+     * @param second
+     *        Set second item
+     *
      */
     public void setSecond(S second)
     {

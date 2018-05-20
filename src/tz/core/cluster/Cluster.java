@@ -71,6 +71,7 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
     private long matchIndex;
     private long onFlyIndex;
     private String votedFor;
+    private long eventCount;
 
     private Node leader;
     private Node own;
@@ -380,7 +381,7 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
             case INCOMING:
                 break;
             case OUTGOING_SUCCEED:
-                node = (Node) conn.getAttachment();
+                node = conn.getNode();
                 node.setConnected();
                 node.sendConnectReq(clusterRecord.getName(),
                                     nodeRecord.getName(), false);
@@ -388,19 +389,19 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
                 break;
 
             case OUTGOING_FAILED:
-                node = (Node) conn.getAttachment();
+                node = conn.getNode();
                 node.reconnect();
                 logInfo("Connection attempt failed : ", node);
                 break;
 
             case DISCONNECTED:
-                if (!conn.hasAttachment()) {
+                if (!conn.hasNode()) {
                     break;
                 }
-                node = (Node) conn.getAttachment();
+                node = (Node) conn.getNode();
                 logInfo("Disconnected : ", node);
 
-                node = (Node) conn.getAttachment();
+                node = (Node) conn.getNode();
                 if (node.isClient()) {
                     clients.remove(node.getName());
                 }
@@ -421,16 +422,15 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
     @Override
     public void handleIncomingMsg(Connection conn, Msg msg)
     {
-        Node node = null;
         try {
-            Object attachment = conn.getAttachment();
-            if (attachment == null) {
+            Node node = conn.getNode();
+            if (node == null) {
                 //This must be ConnectReq
                 handleConnectReqMsg(conn, (ConnectReq) msg);
                 return;
             }
 
-            node = (Node) conn.getAttachment();
+            node = conn.getNode();
             node.addIncomingMsg(msg);
             readyNodes.add(node);
         }
@@ -818,7 +818,7 @@ public class Cluster extends Worker implements RaftCluster, IOOwner
     @Override
     public void handleEvents(Deque<Event> events)
     {
-        //System.out.println("events : "+ events.size());
+        System.out.println("events : "+ events.size());
         try {
             Event event;
             while ((event = events.poll()) != null) {

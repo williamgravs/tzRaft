@@ -78,7 +78,7 @@ public class SelectorPoll extends Poll
                 if (key.isValid() && key.isConnectable()) {
                     fdEvent.onConnect();
                 }
-                
+
                 if (key.isValid() && key.isAcceptable()) {
                     fdEvent.onAccept();
                 }
@@ -110,8 +110,8 @@ public class SelectorPoll extends Poll
 
         while (!stop) {
             awake.set(false);
-            processEvents();
             wakenUp.set(false);
+            processEvents();
             selector.select(timeout);
             awake.set(true);
             timestamp = Util.time();
@@ -121,4 +121,3 @@ public class SelectorPoll extends Poll
         }
     }
 }
-

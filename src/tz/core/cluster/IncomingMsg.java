@@ -4,8 +4,6 @@ import tz.base.poll.Event;
 import tz.core.Connection;
 import tz.core.msg.Msg;
 
-import java.util.Deque;
-
 public class IncomingMsg implements Event
 {
     private Cluster cluster;

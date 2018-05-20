@@ -1,9 +1,6 @@
 package tz.base.common;
 
 import java.nio.*;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetEncoder;
-
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 
@@ -15,14 +12,19 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  */
 public class Buffer
 {
-    private ByteBuffer buf; //buf can be heap, direct or mapped
-    private int offset;
-    public Buffer next;
+    //buf can be heap, direct or mapped
+    private ByteBuffer buf;
 
+    //Offset of this buffer if it is a slice
+    private int offset;
+
+    //Next buffer, used to prevent allocation
+    public Buffer next;
 
     /**
      * This constructor copies bytes of input src to a newly allocated ByteBuffer
-     * @param src byte array to copy into this buffer
+     * @param   src
+     *          Byte array to copy into this buffer
      */
     public Buffer(byte[] src)
     {
@@ -31,7 +33,9 @@ public class Buffer
 
     /**
      * Allocate buffer with indicated size
-     * @param size size of buffer
+     *
+     * @param   size
+     *          Size of buffer
      */
     public Buffer(int size)
     {
@@ -41,7 +45,9 @@ public class Buffer
     /**
      * Shares the byte array behind but position and limit values are
      * independent
-     * @param buf Buffer object to share byte array with new object
+     *
+     * @param   buf
+     *          Buffer object to share byte array with new object
      */
     public Buffer(Buffer buf)
     {
@@ -50,28 +56,39 @@ public class Buffer
 
     /**
      * Wrap ByteBuffer with Buffer object
-     * @param buf ByteBuffer backend for Buffer object
+     * @param   buf
+     *          ByteBuffer backend for Buffer object
      */
     public Buffer(ByteBuffer buf)
     {
         this.buf = buf;
     }
 
+    /**
+     * Default
+     */
     public Buffer()
     {
 
     }
 
 
-    boolean isMapped()
-    {
-        return buf instanceof MappedByteBuffer;
-    }
-
-    public void setOffset(int offset)
+    /**
+     * Set offset
+     *
+     * @param   offset
+     *          Offset of this buffer
+     */
+    private void setOffset(int offset)
     {
         this.offset = offset;
     }
+
+    /**
+     * Offset of this buffer if it's slice of another buffer
+     *
+     * @return  Offset
+     */
 
     public int getOffset()
     {
@@ -80,7 +97,9 @@ public class Buffer
 
     /**
      * Set this objects buffer
-     * @param buf ByteBuffer backend for Buffer object
+     *
+     * @param   buf
+     *          ByteBuffer backend for Buffer object
      */
     public void setBuf(ByteBuffer buf)
     {
@@ -89,7 +108,8 @@ public class Buffer
 
     /**
      * Returns this buffer's capacity
-     * @return capacity of this buffer
+     *
+     * @return Capacity of this buffer
      */
     public int cap()
     {
@@ -99,7 +119,8 @@ public class Buffer
     /**
      * Creates a new byte buffer whose content is a shared subsequence of
      * this buffer's content.
-     * @return slice of this buffer
+     *
+     * @return  Slice of this buffer
      */
     public Buffer slice()
     {
@@ -108,13 +129,17 @@ public class Buffer
 
     /**
      * Creates a slice of this buffer from 'pos' with lenght 'len'
-     * @param pos position to head of the slice
-     * @param len length of slice
-     * @return    Buffer object with position and limit data is set according
-     *            to method arguments
+     * @param   pos
+     *          Position to head of the slice
+     *
+     * @param   len
+     *          Length of slice
+     *
+     * @return  Buffer object with position and limit data is set according
+     *          to method arguments
      *
      *@throws  IllegalArgumentException
-     *          If the preconditions do not hold
+     *         If the preconditions do not hold
      */
     public Buffer slice(int pos, int len)
     {
@@ -135,7 +160,8 @@ public class Buffer
 
     /**
      * Acquire a duplicate of this Buffer
-     * @return Duplicate of this Buffer
+     *
+     * @return  Duplicate of this Buffer
      */
     public Buffer duplicate()
     {
@@ -154,15 +180,19 @@ public class Buffer
 
     /**
      * Absolute put operation
-     * @param i     Position to put byte
-     * @param value Value of the byte
+     *
+     * @param   i
+     *          Position to put byte
+     *
+     * @param   value
+     *          Value of the byte
      *
      * @throws  IndexOutOfBoundsException
      *          If <tt>index</tt> is negative
      *          or not smaller than the buffer's limit
      *
-     * @throws ReadOnlyBufferException
-     *         If this buffer is read-only
+     * @throws  ReadOnlyBufferException
+     *          If this buffer is read-only
      */
     public void put(int i, byte value)
     {
@@ -177,8 +207,8 @@ public class Buffer
      *          If <tt>index</tt> is negative
      *          or not smaller than the buffer's limit
      *
-     * @throws ReadOnlyBufferException
-     *         If this buffer is read-only
+     * @throws  ReadOnlyBufferException
+     *          If this buffer is read-only
      */
     public void put(byte value)
     {
@@ -193,8 +223,8 @@ public class Buffer
      *          If <tt>index</tt> is negative
      *          or not smaller than the buffer's limit
      *
-     * @throws ReadOnlyBufferException
-     *         If this buffer is read-only
+     * @throws  ReadOnlyBufferException
+     *          If this buffer is read-only
      */
     public void put(int value)
     {
@@ -208,10 +238,10 @@ public class Buffer
      * <p> Writes the given byte into this buffer at the current
      * position, and then increments the position. </p>
      *
-     * @param  b
-     *         The byte to be written
+     * @param   b
+     *          The byte to be written
      *
-     * @throws BufferOverflowException
+     * @throws  BufferOverflowException
      *          If this buffer's current position is not smaller than its limit
      *
      * @throws  ReadOnlyBufferException
@@ -689,11 +719,11 @@ public class Buffer
         return dup.slice();
     }
 
-    public ByteBuffer getByteBuffer()
-    {
-        return getByteBuffer(getVarInt());
-    }
-
+    /**
+     * Get a copy of ByteBuffer backend
+     *
+     * @return Copy of current buffer
+     */
     public ByteBuffer getByteBufferCopy()
     {
         ByteBuffer copy = ByteBuffer.allocate(getVarInt());

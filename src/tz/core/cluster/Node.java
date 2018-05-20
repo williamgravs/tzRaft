@@ -1,6 +1,5 @@
 package tz.core.cluster;
 
-import tz.base.common.Buffer;
 import tz.base.poll.TimerEvent;
 import tz.base.record.ClusterRecord;
 import tz.base.record.NodeRecord;
@@ -14,7 +13,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
-import java.util.Random;
 
 public class Node implements MsgHandler
 {
@@ -77,7 +75,7 @@ public class Node implements MsgHandler
 
         nextIndex       = 0;
         matchIndex      = 0;
-        incomings       = new ArrayDeque<>();
+        incomings       = new ArrayDeque<>(10000);
         outgoings       = new ArrayDeque<>();
         role            = Role.FOLLOWER;
         transport       = 0;
@@ -89,7 +87,7 @@ public class Node implements MsgHandler
 
         if (conn != null) {
             connectionState = State.CONNECTED;
-            conn.setAttachment(this);
+            conn.setNode(this);
         }
     }
 
@@ -235,7 +233,7 @@ public class Node implements MsgHandler
         incomings.add(msg);
     }
 
-    public void handleMsgs()
+    public void handleMsgs() throws InterruptedException
     {
         inTimestamp = cluster.timestamp();
         for (Msg msg : incomings) {
@@ -276,7 +274,7 @@ public class Node implements MsgHandler
         }
 
         conn = other;
-        conn.setAttachment(this);
+        conn.setNode(this);
         setConnected();
     }
 
@@ -286,7 +284,7 @@ public class Node implements MsgHandler
         TransportRecord record = transports.get(transport++ % transports.size());
 
         conn = new Connection(worker, null, record);
-        conn.setAttachment(this);
+        conn.setNode(this);
         worker.addConnection(conn);
         connectionState = State.CONNECTION_IN_PROGRESS;
     }
