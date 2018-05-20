@@ -12,6 +12,9 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
+/**
+ * Poller with Selector backed
+ */
 public class SelectorPoll extends Poll
 {
     private final Selector selector;
@@ -19,6 +22,11 @@ public class SelectorPoll extends Poll
     private final AtomicBoolean wakenUp;
 
 
+    /**
+     * Create a new SelectorPoll
+     *
+     * @param  worker Worker thread for this poller
+     */
     public SelectorPoll(Worker worker)
     {
         super(worker);
@@ -35,17 +43,34 @@ public class SelectorPoll extends Poll
         timestamp    = Util.time();
     }
 
+    /**
+     * Get selector
+     *
+     * @return  Selector
+     */
     @Override
     public Selector getSelector()
     {
         return selector;
     }
 
+    /**
+     * Register socket with interest ops
+     *
+     * @param  sock  Socket
+     * @param  ops   Interest Ops
+     *
+     */
     public void add(Sock sock, int ops)
     {
         sock.register(selector, ops);
     }
 
+    /**
+     * Add event
+     *
+     * @param  event  Event object to be processed
+     */
     @Override
     public void addEvent(Event event)
     {
@@ -61,7 +86,11 @@ public class SelectorPoll extends Poll
         }
     }
 
-
+    /**
+     * Process selected keys
+     *
+     * @param  readyKeys  Keys ready to be processed
+     */
     private void processSelect(Set<SelectionKey> readyKeys)
     {
         Iterator<SelectionKey> it = readyKeys.iterator();
@@ -103,6 +132,11 @@ public class SelectorPoll extends Poll
     }
 
 
+    /**
+     * Main loop of the poller
+     *
+     * @throws  IOException On any IO exception
+     */
     @Override
     public void loop() throws IOException
     {

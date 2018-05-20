@@ -45,6 +45,9 @@ public class Poll
         timestamp   = Util.time();
     }
 
+    /**
+     * Stop the loop
+     */
     public void stop()
     {
         stop = true;
@@ -52,7 +55,8 @@ public class Poll
 
     /**
      * Get timestamp
-     * @return latest timestamp of the event loop
+     *
+     * @return  latest timestamp of the event loop
      */
     public long getTimestamp()
     {
@@ -62,7 +66,8 @@ public class Poll
     /**
      * Pass an event to this poll, mostly called by other threads than this
      * one's owner
-     * @param event Event object to be processed
+     *
+     * @param  event  Event object to be processed
      */
     public void addEvent(Event event)
     {
@@ -93,7 +98,7 @@ public class Poll
     /**
      * Main loop for a thread
      *
-     * @throws IOException If selector fails
+     * @throws  IOException  If selector fails
      */
     public void loop() throws IOException, InterruptedException
     {
@@ -114,21 +119,48 @@ public class Poll
         }
     }
 
+    /**
+     * Add Timer
+     *
+     * @param  event  Timer to add
+     */
     public void addTimer(TimerEvent event)
     {
         timer.add(event);
     }
 
+    /**
+     * Remove timer
+     *
+     * @param  event  Timer to remove
+     */
     public void removeTimer(TimerEvent event)
     {
         timer.remove(event);
     }
 
+    /**
+     * Get selector
+     *
+     * @return Selector
+     *
+     * @throws  UnsupportedOperationException
+     *          When not overridden
+     */
     public Selector getSelector()
     {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Add socket with options to selector of this Poll object
+     *
+     * @param  sock  Socket
+     * @param  ops   Interest Ops
+     *
+     * @throws  UnsupportedOperationException
+     *          When not overridden
+     */
     public void add(Sock sock, int ops)
     {
         throw new UnsupportedOperationException();

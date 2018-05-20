@@ -10,8 +10,7 @@ public class TlsException extends RuntimeException
     /**
      * Create new TLS exception with info line
      *
-     * @param   log
-     *          log line to be held in this exception obj
+     * @param   log  log line to be held in this exception obj
      */
     public TlsException(String log)
     {

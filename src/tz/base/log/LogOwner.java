@@ -12,7 +12,7 @@ public interface LogOwner
      * Provide log instance
      * There is single log instance which holds desired log level etc.
      *
-     * @return Log instance
+     * @return  Log instance
      */
     Log getLogger();
 
@@ -25,14 +25,14 @@ public interface LogOwner
      * For debugging purposes, using a unified timestamp of thread
      * is better. So, log reader may understand events occured in one loop
      *
-     * @return Timestamp in millis
+     * @return  Timestamp in millis
      */
     long getTimestamp();
 
     /**
      * Get current thread's name
      *
-     * @return Current thread's name
+     * @return  Current thread's name
      */
     String getName();
 
@@ -40,8 +40,9 @@ public interface LogOwner
     /**
      * Create DEBUG log line
      *
-     * @param args Variable sized arguments, could be any type, they will be
-     *             combined if log level is permitted
+     * @param  args
+     *         Variable sized arguments, could be any type, they will be
+     *         combined if log level is permitted
      */
     default void logDebug(Object... args)
     {
@@ -51,8 +52,9 @@ public interface LogOwner
     /**
      * Create INFO log line
      *
-     * @param args Variable sized arguments, could be any type, they will be
-     *             combined if log level is permitted
+     * @param  args
+     *         Variable sized arguments, could be any type, they will be
+     *         combined if log level is permitted
      */
     default void logInfo(Object... args)
     {
@@ -62,8 +64,9 @@ public interface LogOwner
     /**
      * Create WARNING log line
      *
-     * @param args Variable sized arguments, could be any type, they will be
-     *             combined if log level is permitted
+     * @param  args
+     *         Variable sized arguments, could be any type, they will be
+     *         combined if log level is permitted
      */
     default void logWarn(Object... args)
     {
@@ -73,8 +76,9 @@ public interface LogOwner
     /**
      * Create ERROR log line
      *
-     * @param args Variable sized arguments, could be any type, they will be
-     *             combined if log level is permitted
+     * @param  args
+     *         Variable sized arguments, could be any type, they will be
+     *         combined if log level is permitted
      */
     default void logError(Object... args)
     {
@@ -84,8 +88,12 @@ public interface LogOwner
     /**
      * Create ERROR log line with a throwable object
      *
-     * @param args Variable sized arguments, could be any type, they will be
-     *             combined if log level is permitted
+     * @param  t
+     *         Any throwable to report
+     *
+     * @param  args
+     *         Variable sized arguments, could be any type, they will be
+     *         combined if log level is permitted
      */
     default void logError(Throwable t, Object... args)
     {
