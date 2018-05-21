@@ -1,4 +1,4 @@
-package tz.app;
+package test.app;
 
 import tz.base.common.Buffer;
 import tz.core.cluster.state.State;

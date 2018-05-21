@@ -1,4 +1,4 @@
-package tz.app;
+package test.app;
 
 import tz.base.log.Level;
 import tz.base.record.NodeRecord;
@@ -8,14 +8,6 @@ import tz.core.cluster.Cluster;
 import tz.core.cluster.Config;
 
 import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.Collections;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 public class App
 {
@@ -81,7 +73,4 @@ public class App
             e.printStackTrace();
         }
     }
-
-
-
 }

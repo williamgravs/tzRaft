@@ -1,4 +1,4 @@
-package tz.app;
+package test.app;
 
 import tz.base.common.Buffer;
 import tz.base.log.Level;
@@ -10,14 +10,7 @@ import tz.core.client.FutureRequest;
 import tz.core.msg.Encoder;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.sql.Time;
-import java.util.Arrays;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class ClientTest implements ClientListener
 {
